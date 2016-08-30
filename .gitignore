@@ -87,3 +87,8 @@ ENV/
 
 # Rope project settings
 .ropeproject
+
+mysql.conf
+# devenv/
+*.sqlite3
+.idea
