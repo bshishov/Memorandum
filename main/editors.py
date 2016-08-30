@@ -5,19 +5,13 @@ import os
 # abstract editor
 class Editor:
     def __init__(self):
+        self.name = "editor"
         # list of extensions that can be handle
         self.extensions = []
-        # list of extensions that this editor is default for
-        self.defaultExtensions = []
 
     # raise exception if editor can not handle this item
-    def canHandleProbe(self, item):
-        if item.extension not in self.extensions:
-            raise LookupError
-
-    # return true if item extension is in defaultExtensions list
-    def isDefaultFor(self, item):
-        if item.extension in self.defaultExtensions:
+    def canHandle(self, item):
+        if item.extension in self.extensions:
             return True
         else:
             return False
@@ -27,7 +21,7 @@ class Editor:
         return HttpResponse("No such action")
 
     @staticmethod
-    def show(item):
+    def show(item, request):
         return HttpResponse("Sup, i handled " + item.name)
 
 
@@ -35,29 +29,26 @@ class Editor:
 class UniversalEditor(Editor):
     def __init__(self):
         super(UniversalEditor, self).__init__()
+        self.name = "universal"
 
     # never raise exception
-    def canHandleProbe(self, item):
-        pass
-
-    # return true always
-    def isDefaultFor(self, item):
-            return True
+    def canHandle(self, item):
+        return True
 
     @staticmethod
-    def show(item):
+    def show(item, request):
         return HttpResponse("item " + item.name + " with extension " + item.extension + " handled whith universal editor")
 
 
 # test editor, that only shows text file content
 class TextEditor(Editor):
     def __init__(self):
-
-        self.extensions = ["txt", "hex", "bin", "ini"]
-        self.defaultExtensions = ["txt"]
+        super(TextEditor, self).__init__()
+        self.name = "text"
+        self.extensions = [".txt", ".hex", ".bin", ".ini"]
 
     @staticmethod
-    def show(item):
+    def show(item, request):
         f = open(item.absolutePath, 'r')
         content = f.read()
         f.close()
@@ -67,12 +58,12 @@ class TextEditor(Editor):
 # test editor for directories
 class DirectoryEditor(Editor):
     def __init__(self):
-        Editor.__init__(self)
+        super(DirectoryEditor, self).__init__()
+        self.name = "directory"
         self.extensions = [""]
-        self.defaultExtensions = [""]
 
     @staticmethod
-    def show(item):
+    def show(item, request):
         childList = os.listdir(item.absolutePath)
         contentString = ""
         for subItem in childList:

@@ -12,11 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 from main import editors
 import os
-import local_settings
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-
+from .local_settings import *
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -109,15 +105,5 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 
-# array of editors for different types
-# of items
-
-EDITORS = {
-    "universal": editors.UniversalEditor(),
-    "text": editors.TextEditor(),
-    "directory": editors.DirectoryEditor(),
-}
-
-# need to be sure that "universal" will be last
-EDITORNAMES = EDITORS.keys()
-EDITORNAMES = sorted(EDITORNAMES, key=lambda name: name == "universal")
+# array of editors for different types of items
+EDITORS = [editors.DirectoryEditor(), editors.TextEditor(), editors.UniversalEditor()]

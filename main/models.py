@@ -33,24 +33,14 @@ class Item:
     def __init__(self, path):
         if not os.path.exists(path):
             raise FileNotFoundError
-        # getting an extension
-        nameParts = path.split(".")
-        # checking if extension exists
-        if len(nameParts) > 1:
-            self.extension = nameParts.pop()
-        else:
-            self.extension = ""
-        # parse given path
-        pathParts = path.split("\\")
-        self.name = pathParts.pop()
-        # if there was only username in url
-        # we have to pop once again
+        parts = os.path.split(path)
+        self.extension = os.path.splitext(path)[1]
+        self.purePath = parts[0]
+        self.name = parts[1]
         if self.name == "":
-            self.name = pathParts.pop()
-        # making relative path from parts
-        self.relativePath = ""
-        for part in pathParts:
-            self.relativePath += part + "\\"
+            subParts = os.path.split(self.purePath)
+            self.purePath = subParts[0]
+            self.name = subParts[1]
         self.absolutePath = path
 
     def __str__(self):

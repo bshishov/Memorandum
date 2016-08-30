@@ -33,18 +33,21 @@ def index(request, userName, relativePath):
         currentItemPath= os.path.join(homeDir, relativePath)
         currentItem = models.Item(currentItemPath)
         # getting the needed editor or searching for default editor
-        chosenEditor = request.GET.get('editor', None)
-        if chosenEditor is None:
-            for editorName in settings.EDITORNAMES:
-                possibleEditor = settings.EDITORS[editorName]
-                if possibleEditor.isDefaultFor(currentItem):
+        editorName = request.GET.get('editor', None)
+        if editorName is None:
+            for possibleEditor in settings.EDITORS:
+                if possibleEditor.canHandle(currentItem):
                     editor = possibleEditor
                     break
         else:
-            editor = settings.EDITORS[chosenEditor]
+            for possibleEditor in settings.EDITORS:
+                if possibleEditor.name == editorName:
+                    editor = possibleEditor
+                    break
             # check if the editor is suitable for this extension
             # (if not, LookupException will be raised)
-            editor.canHandleProbe(currentItem)
+            if not editor.canHandle(currentItem):
+                raise LookupError
         # getting the needed action or 'show' by default
         chosenAction = request.GET.get('action', 'show')
     except KeyError:
@@ -56,8 +59,8 @@ def index(request, userName, relativePath):
     except Exception:
         return HttpResponse("Unknown exception")
     else:
-        action = getattr(editor, chosenAction, editor.notExists)
-        return action(currentItem)
+        action = getattr(editor, chosenAction, editor.notExists())
+        return action(currentItem, request)
 
 
 
