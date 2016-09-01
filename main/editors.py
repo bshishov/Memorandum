@@ -1,4 +1,7 @@
+#from django.shortcuts import render
+from django.template import Context, loader, RequestContext
 from django.http import HttpResponse
+from . import items
 import os
 
 
@@ -52,7 +55,9 @@ class TextEditor(Editor):
         f = open(item.absolutePath, 'r')
         content = f.read()
         f.close()
-        return HttpResponse("TEXT FILES HANDLER<br><br>" + content)
+        template = loader.get_template("text_file.html")
+        context = Context({'content': content})
+        return HttpResponse(template.render(context))
 
 
 # test editor for directories
@@ -65,7 +70,12 @@ class DirectoryEditor(Editor):
     @staticmethod
     def show(item, request):
         childList = os.listdir(item.absolutePath)
-        contentString = ""
-        for subItem in childList:
-            contentString += subItem + "<br>"
-        return HttpResponse("DIRECTORY HANDLER<br><br>" + contentString)
+        childItems = []
+        for child in childList:
+            absolutePath = os.path.join(item.absolutePath, child)
+            urlPath = item.urlPath + "/" + child
+            childItems.append(items.Item(absolutePath, item.owner, urlPath))
+        host = request.get_host()
+        template = loader.get_template("directory.html")
+        context = Context({'childItems': childItems, 'host': host})
+        return HttpResponse(template.render(context))

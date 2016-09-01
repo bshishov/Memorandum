@@ -3,8 +3,10 @@ from django.http import HttpResponse
 from django.template import Context, loader, RequestContext
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
+from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from . import models
+from . import items
 from . import editors
 import os
 
@@ -24,14 +26,46 @@ def show(request):
     return HttpResponse(directory)
 
 
-# sets
+# shows login form
+def login_view(request):
+    user = request.user
+    if user.is_authenticated:
+        return redirect("/"+user.username)
+    else:
+        return render(request, 'login_form.html')
+
+
+# authenticates user
+def auth(request):
+    user = request.user
+    if not user.is_authenticated:
+        username = request.POST.get('username', "")
+        password = request.POST.get('password', "")
+        user = authenticate(username=username, password=password)
+        if user is None:
+            return redirect("/login")
+        login(request, user)
+    return redirect("/" + user.username)
+
+
+def logout_view(request):
+    current_user = request.user
+    if current_user.is_authenticated:
+        logout(request)
+    return redirect("/login")
+
+
+# main view function - handles the given item
 def index(request, userName, relativePath):
     try:
-        user = User.objects.get(username=userName)
-        homeDir = models.HomeDirectories.objects.get(uid=user).homeDir
+        request_user = request.user
+        if not request_user.is_authenticated:
+            return redirect("/login")
+        url_user = User.objects.get(username=userName)
+        homeDir = models.HomeDirectories.objects.get(uid=url_user).homeDir
         # making current item from homedir and url params
         currentItemPath= os.path.join(homeDir, relativePath)
-        currentItem = models.Item(currentItemPath)
+        currentItem = items.Item(currentItemPath, url_user, request.get_full_path())
         # getting the needed editor or searching for default editor
         editorName = request.GET.get('editor', None)
         if editorName is None:
@@ -50,6 +84,8 @@ def index(request, userName, relativePath):
                 raise LookupError
         # getting the needed action or 'show' by default
         chosenAction = request.GET.get('action', 'show')
+    except ObjectDoesNotExist:
+        return HttpResponse("wrong user or homedir does not exist")
     except KeyError:
         return HttpResponse("No such editor")
     except LookupError:

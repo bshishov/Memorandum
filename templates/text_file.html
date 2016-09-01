@@ -1,0 +1,14 @@
+{% extends "layout.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block content %}
+<div class="textEditorGreeting">
+Hi, this is editor for .txt files! Requested file contains:
+</div>
+<div class="text">
+{{ content }}
+</div>
+<a href="../">back</a>
+{% endblock %}

@@ -1,10 +1,13 @@
-{% extends "application/wrapper.html" %}
+{% extends "layout.html" %}
+
+{% block head %}
+{% endblock %}
 
 {% block content %}
-<form action="logged_in" method="post">
+<form action="./" method="post">
 {% csrf_token %}
 <span>Enter name: </span><input name="username" type="text">
-<span>Enter pass: </span><input name="password" type="text">
+<span>Enter pass: </span><input name="password" type="password">
 <input type="hidden" name="next" value="show">
 <input type="submit" name="go">
 </form>

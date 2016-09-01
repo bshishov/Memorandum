@@ -10,9 +10,10 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-from main import editors
-import os
 from .local_settings import *
+import os
+from main import editors
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -27,13 +28,13 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'main',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'main',
 ]
 
 MIDDLEWARE = [
@@ -104,6 +105,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-
+# from main import editors
 # array of editors for different types of items
 EDITORS = [editors.DirectoryEditor(), editors.TextEditor(), editors.UniversalEditor()]

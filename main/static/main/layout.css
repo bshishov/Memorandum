@@ -1,0 +1,35 @@
+.wrapper{
+  width: 80%;
+  margin-left: 10%;
+  text-align:center;
+}
+
+
+.header{
+  text-align: center;
+}
+
+
+.main{
+  border: 1px solid;
+}
+
+
+.navigation-wrapper{
+  width: 20%;
+  display: inline-block;
+  //float: left;
+  border: 1px solid;
+}
+
+
+.content-wrapper{
+  width: 80%;
+  //float: right;
+  border: 1px solid;
+}
+
+
+.footer{
+  text-align: center;
+}
