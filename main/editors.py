@@ -1,4 +1,3 @@
-#from django.shortcuts import render
 from django.template import Context, loader, RequestContext
 from django.http import HttpResponse
 from . import items
@@ -13,18 +12,18 @@ class Editor:
         self.extensions = []
 
     # raise exception if editor can not handle this item
-    def canHandle(self, item):
+    def can_handle(self, item):
         if item.extension in self.extensions:
             return True
         else:
             return False
 
     # returns if needed action was not found
-    def notExists(self):
+    def not_exists(self):
         return HttpResponse("No such action")
 
     @staticmethod
-    def show(item, request):
+    def show(item, request, permissions):
         return HttpResponse("Sup, i handled " + item.name)
 
 
@@ -35,11 +34,11 @@ class UniversalEditor(Editor):
         self.name = "universal"
 
     # never raise exception
-    def canHandle(self, item):
+    def can_handle(self, item):
         return True
 
     @staticmethod
-    def show(item, request):
+    def show(item, request, permissions):
         return HttpResponse("item " + item.name + " with extension " + item.extension + " handled whith universal editor")
 
 
@@ -51,7 +50,7 @@ class TextEditor(Editor):
         self.extensions = [".txt", ".hex", ".bin", ".ini"]
 
     @staticmethod
-    def show(item, request):
+    def show(item, request, permissions):
         f = open(item.absolutePath, 'r')
         content = f.read()
         f.close()
@@ -68,14 +67,14 @@ class DirectoryEditor(Editor):
         self.extensions = [""]
 
     @staticmethod
-    def show(item, request):
-        childList = os.listdir(item.absolutePath)
-        childItems = []
-        for child in childList:
-            absolutePath = os.path.join(item.absolutePath, child)
-            urlPath = item.urlPath + "/" + child
-            childItems.append(items.Item(absolutePath, item.owner, urlPath))
+    def show(item, request, permissions):
+        child_list = os.listdir(item.absolutePath)
+        child_items = []
+        for child in child_list:
+            absolute_path = os.path.join(item.absolutePath, child)
+            url_path = item.urlPath + "/" + child
+            child_items.append(items.Item(absolute_path, item.owner, url_path))
         host = request.get_host()
         template = loader.get_template("directory.html")
-        context = Context({'childItems': childItems, 'host': host})
+        context = Context({'childItems': child_items, 'host': host})
         return HttpResponse(template.render(context))

@@ -105,6 +105,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# from main import editors
 # array of editors for different types of items
 EDITORS = [editors.DirectoryEditor(), editors.TextEditor(), editors.UniversalEditor()]
+
+# permissions that describe access mode
+PERMISSIONS = {'nothing': 0, 'show': 1, 'append': 3, 'edit': 7, 'share': 15, 'Chuck_Norris': 9999}

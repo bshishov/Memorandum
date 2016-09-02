@@ -13,17 +13,21 @@ import os
 
 # help function - need to create users and home directories
 def create(request):
-    user = User.objects.get(username="dumb")
-    models.HomeDirectories.objects.create(uid=user, homeDir="d:\\python\\memorandum\\testhomedir")
+    admin = User.objects.get(username="admin")
+    dumb = User.objects.get(username="dumb")
+    sharing = models.Sharing.objects.get(owner=admin)
+    sharing.item = "/subdir"
+    sharing.save()
     return HttpResponse("done")
 
 
 # help function - need to show existing users and home directories
 # for ensure that they are created
 def show(request):
-    user = User.objects.get(username="admin")
-    directory = models.HomeDirectories.objects.get(uid=currUser)
-    return HttpResponse(directory)
+    admin = User.objects.get(username="admin")
+    sharing = models.Sharing.objects.get(owner=admin)
+    resp = sharing.shared_with
+    return HttpResponse(resp)
 
 
 # shows login form
@@ -55,48 +59,51 @@ def logout_view(request):
     return redirect("/login")
 
 
+def access_denied(request):
+    return HttpResponse("Access denied!!")
+
+
 # main view function - handles the given item
-def index(request, userName, relativePath):
+def index(request, user_name, relative_path):
     try:
         request_user = request.user
         if not request_user.is_authenticated:
             return redirect("/login")
-        url_user = User.objects.get(username=userName)
-        homeDir = models.HomeDirectories.objects.get(uid=url_user).homeDir
+        url_user = User.objects.get(username=user_name)
+        home_dir = models.HomeDirectory.objects.get(uid=url_user).home_dir
+        current_item_path = os.path.join(home_dir, relative_path)
         # making current item from homedir and url params
-        currentItemPath= os.path.join(homeDir, relativePath)
-        currentItem = items.Item(currentItemPath, url_user, request.get_full_path())
+        current_item = items.Item(current_item_path, url_user, request.get_full_path())
+        # check if request_user can access needed item
+        permission = models.Sharing.get_permission(request_user, current_item)
+        # getting the needed action or 'show' by default
+        chosen_action = request.GET.get('action', 'show')
+        if not permission & settings.PERMISSIONS.get(chosen_action):
+            return redirect("/access_denied")
         # getting the needed editor or searching for default editor
-        editorName = request.GET.get('editor', None)
-        if editorName is None:
+        editor_name = request.GET.get('editor', None)
+        if editor_name is None:
             for possibleEditor in settings.EDITORS:
-                if possibleEditor.canHandle(currentItem):
+                if possibleEditor.can_handle(current_item):
                     editor = possibleEditor
                     break
         else:
             for possibleEditor in settings.EDITORS:
-                if possibleEditor.name == editorName:
+                if possibleEditor.name == editor_name:
                     editor = possibleEditor
                     break
             # check if the editor is suitable for this extension
             # (if not, LookupException will be raised)
-            if not editor.canHandle(currentItem):
+            if not editor.can_handle(current_item):
                 raise LookupError
-        # getting the needed action or 'show' by default
-        chosenAction = request.GET.get('action', 'show')
     except ObjectDoesNotExist:
-        return HttpResponse("wrong user or homedir does not exist")
+        return HttpResponse("wrong user or home dir does not exist")
     except KeyError:
         return HttpResponse("No such editor")
     except LookupError:
         return HttpResponse("Wrong editor chosen")
     except FileNotFoundError:
         return HttpResponse("404 not found")
-    except Exception:
-        return HttpResponse("Unknown exception")
     else:
-        action = getattr(editor, chosenAction, editor.notExists())
-        return action(currentItem, request)
-
-
-
+        action = getattr(editor, chosen_action, editor.not_exists())
+        return action(current_item, request, permission)

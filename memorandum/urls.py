@@ -20,7 +20,8 @@ from main import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^create$', views.create),
-    url(r'^show$', views.create),
+    url(r'^show$', views.show),
+    url(r'^access_denied$', views.access_denied),
     url(r'^login/?$', views.login_view),
     url(r'^logout/?$', views.logout_view),
     url(r'^$', views.auth),
