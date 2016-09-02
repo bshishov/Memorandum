@@ -1,0 +1,7 @@
+{% extends 'file_layout.html' %}
+
+{% block file_content %}
+<video controls class="responsive">
+	<source src="{{item.url}}?action=raw" type="{{item.mime}}">
+</video>
+{% endblock %}

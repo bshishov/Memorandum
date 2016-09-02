@@ -1,0 +1,25 @@
+{% extends 'page_layout.html' %}
+
+{% block page_title %}Login{% endblock %}
+
+{% block page_content %}
+    <form class="ui large form" method="post">
+      <div class="ui segment">
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="user icon"></i>
+            <input type="text" name="username" placeholder="Username">
+          </div>
+        </div>
+        <div class="field">
+          <div class="ui left icon input">
+            <i class="lock icon"></i>
+            <input type="password" name="password" placeholder="Password">
+          </div>
+        </div>
+        {% csrf_token %}
+        <input type="submit" class="ui fluid large submit button" value="Login" />
+      </div>
+      <div class="ui error message"></div>
+    </form>
+{% endblock %}

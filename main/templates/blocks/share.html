@@ -1,0 +1,20 @@
+﻿<div class="ui small modal" id="share">
+	<div class="content">
+		<form class="ui form" action="?action=share" method="POST">
+      <div class="two fields">
+          <div class="field">
+            <label>Share with</label>
+            <input type="text" name="target" placeholder="New name" value="" />
+			    </div>
+          <div class="field">
+            <label>Sharing type</label>
+            <select class="ui dropdown" name="type">
+              <option value="read">Can read</option>
+              <option value="write">Can write</option>
+            </select>
+          </div>
+      </div>
+      <button class="ui primary button" type="submit">Share</button>
+		</form>
+	</div>
+</div>

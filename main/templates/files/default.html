@@ -1,0 +1,22 @@
+﻿{% extends 'file_layout.html' %}
+
+{% block file_content %}
+<div class="ui two column centered grid">
+  <div class="column">
+	<div class="ui raised segment center aligned">
+		<h2 class="ui icon header">
+		  <i class="file icon"></i>
+		  <div class="content">
+			{{ item.name }}
+		  </div>
+		</h2>
+		<div class="section">
+			<a href="?editor=code" class="ui button">Edit as text</a>
+			<a href="{{item.url}}?action=download" class="ui primary button">Download</a>
+		</div>
+	</div>
+  </div>
+</div>
+
+
+{% endblock %}

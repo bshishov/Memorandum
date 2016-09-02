@@ -1,0 +1,61 @@
+﻿<div class="md-editor">
+	<div class="ui basic segment">
+		<div class="ui basic right floated buttons">
+			<a href="javascript:;" class="ui button toggle" data-tab="second"><i class="icon code"></i>Code</a>
+			<a href="javascript:;" class="ui button save">Save</a>
+		</div>
+		<div class="md-html"></div>
+	</div>
+	<div class="ui form md-raw-form" style="display:none;">
+		<div class="field">
+			<textarea class="md-raw"></textarea>
+		</div>
+	</div>
+</div>
+
+
+<script src="{% static 'js/showdown.min.js' %}" type="text/javascript" charset="utf-8"></script>
+<script src="{% static 'js/me-markdown.standalone.min.js' %}" type="text/javascript" charset="utf-8"></script>
+<script>
+    $(document).ready(function(){
+        var path = "{{item.url}}?action=raw";
+		var md2html = new showdown.Converter();
+		var mediumEditor;
+
+        $.ajax({
+          url: path,
+          dataType: "text",
+          success: function(data) {
+			$(".md-editor .md-html").html( md2html.makeHtml(data) );
+
+            var markDownEl = $(".md-editor .md-raw");
+			mediumEditor = new MediumEditor(document.querySelector(".md-editor .md-html"), {
+				extensions: {
+					markdown: new MeMarkdown(function (md) {
+						markDownEl.val(md);
+					})
+				}
+			});
+          },
+        });
+
+
+		$(".md-editor .md-raw").change(function() {
+			var htmlContent = md2html.makeHtml(  $(".md-editor .md-raw").val() );
+			mediumEditor.setContent(htmlContent, 0)
+			console.log("changed");
+		});
+
+		$(".md-editor .toggle").click(function() {
+			$(".md-editor .md-raw-form").toggle();
+			$(".md-editor .md-html").toggle();
+		});
+
+		$(".md-editor .save").click(function() {
+			var val = $(".md-editor .md-raw").val();
+      $.post("{{item.url}}?action=save", { data: val })
+        //.done(function(data) { alert(data) })
+        .error(function(error) { console.log(error) });
+		});
+  });
+</script>

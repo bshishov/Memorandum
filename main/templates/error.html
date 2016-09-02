@@ -1,0 +1,35 @@
+﻿{% extends 'page_layout.html' %}
+
+{% block page_title %}{{ error_code }}{% endblock %}
+
+{% block page_content %}
+<div class="ui two column centered grid">
+  <div class="column">
+	<div class="ui basic segment center aligned">
+		<h2 class="ui icon header">
+		  <div class="content">
+			{{ error_message }}
+		  </div>
+		</h2>
+		<div class="section">
+			<a class="ui basic button" href="javasctipt:;" onclick="$('.ui.modal').modal('show');">
+			  <i class="icon code"></i>
+			  Show details
+			</a>
+		</div>
+	</div>
+  </div>
+</div>
+
+<div class="ui basic modal">
+  <div class="header center">{{ error_message }}</div>
+  <div class="image content">
+    <div class="image">
+      <i class="code icon"></i>
+    </div>
+    <div class="description">
+      <p>{{ exception }}</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

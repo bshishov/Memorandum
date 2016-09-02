@@ -1,0 +1,96 @@
+﻿{% extends 'layout.html' %}
+
+{% block content %}
+<div class="ui vertical inverted left menu sidebar">
+	<div class="item">
+		<div class="ui transparent icon input inverted">
+			<input type="text" placeholder="Search...">
+			<i class="search icon"></i>
+		</div>
+	</div>
+
+	<div class="item">
+		<a class="title" href="/">Home</a>
+		<div class="menu">
+			{% for child in user.base.child_directories %}
+			<a class="item" href="{{ child.url }}">{{ child.name }}</a>
+			{% endfor %}
+		</div>
+	</div>
+
+	<div class="item">
+		<a class="title" href="{{ base_directory.url }}">{{ base_directory.name }}</a>
+		<div class="menu">
+			{% for child in base_directory.child_directories %}
+			<a class="item" href="{{ child.url }}">{{ child.name }}</a>
+			{% endfor %}
+		</div>
+	</div>
+
+	<a class="item" href="/logout">Logout</a>
+</div>
+
+ <div class="ui top fixed stackable small menu">
+	<a class="item icon launch button">
+		<i class="sidebar icon"></i>
+	</a>
+	<div class="item">
+		<div class="ui big breadcrumb">
+			{% for b in item.Breadcrumbs %}
+				<a class="section" href="{{b.url}}">
+					{% if b.is_root %}<i class="icon home"></i>{% else %}{{b.name}}{% endif %}
+				</a>
+				<div class="divider"> / </div>
+			{% endfor %}
+			<div class="active section">{% if item.is_root %}<i class="icon home"></i> Home{% else %}{{ item.name }}{% endif %}</div>
+		</div>
+	</div>
+
+	{% if item.is_root != true %}
+		<a href="javascript:;" class="ui item" onclick="$('#rename').modal('show');">Rename</a>
+	{% endif %}
+
+	<div class="right menu">
+		<a class="ui item" href="javascript:;"onclick="$('#share').modal('show');"><i class="share icon"></i> Share</a>
+		{% block item_controls %}{% endblock %}
+	</div>
+ </div>
+
+<div class="pusher main">
+	<div class="header ui grid stackable">
+		<div class="sixteen wide column">
+			{% block item_header %}{% endblock %}
+		</div>
+	</div>
+	<div class="contentwrapper">
+		<div class="content">
+			{% block item_content %}{% endblock %}
+		</div>
+		<div class="notes transition hidden">
+			{% block item_notes %}{% endblock %}
+		</div>
+	</div>
+</div>
+
+<div class="ui small modal" id="rename">
+	<div class="content">
+		<form class="ui form" action="?action=rename" method="POST">
+			<div class="field">
+				<label>Name</label>
+				<input type="text" name="name" placeholder="New name" value="{{ item.name }}">
+			</div>
+			<button class="ui primary button" type="submit">Save</button>
+		</form>
+	</div>
+</div>
+
+{% include 'blocks/share.html' %}
+
+
+<script type="text/javascript">
+$(document).ready(function () {
+    $('.ui.sidebar')
+        .sidebar('attach events', '.launch.button', 'slide out');
+});
+</script>
+{% endblock %}

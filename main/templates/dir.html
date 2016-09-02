@@ -1,0 +1,68 @@
+﻿{% extends 'item_layout.html' %}
+
+{% block item_controls %}
+	<div class="ui item">
+		<div class="ui dropdown ">
+			<i class="add icon"></i>
+			<span class="text">New</span>
+			<div class="menu">
+				{% for creator in creators %}
+					<div class="item" onclick="$('#creator-{{ creator.id }}').modal('show');">{{ creator.name }}</div>
+				{% endfor %}
+			</div>
+		</div>
+	</div>
+	<a class="ui item" href="javascript:;" onclick="$('#creator-upload').modal('show');"><i class="upload icon"></i> Upload</a>
+	<div class="ui item"><div class="ui label">{{ item.modified }}</div></div>
+	<a class="ui item" href="{{ Item.URL }}?action=download"><i class="download icon"></i> Download</a>
+	<a class="ui item" href="{{ Item.URL }}?action=delete" title="Delete folder and all its contents"><i class="delete icon"></i> Delete</a>
+	<div class="ui item" href="javascript:;" onclick="$('.notes').transition('slide left');"><div class="ui button"><i class="file text icon"></i> Notes</div></div>
+<script type="text/javascript">
+$('.popuped').popup();
+$('.dropdown')
+  .dropdown({
+    // you can use any ui transition
+    transition: 'drop',
+	action: 'hide'
+  });
+</script>
+{% endblock %}
+
+{% block item_content %}
+<div class="ui container">
+	<div class="ui basic segment">
+		<div class="thumbnails">
+			{% for child in item.child_directories %}
+			<a class="thumbnail" href="{{ child.URL }}">
+				{% include child.thumbnail_template item:child %}
+				<div class="label">{{ child.name }}</div>
+			</a>
+			{% endfor %}
+			{% for child in item.child_files %}
+			<a class="thumbnail" href="{{ child.URL }}">
+				{% include child.thumbnail_template item:child %}
+				<div class="label">{{ child.name }}</div>
+			</a>
+			{% endfor %}
+		</div>
+	</div>
+
+	{% for creator in creators %}
+	<div class="ui small modal" id="creator-{{ creator.Id }}">
+	  <div class="header">New {{ creator.name }}</div>
+	  <div class="content">
+		<form class="ui form" action="?action=create&creator={{ creator.Id }}" enctype="multipart/form-data" method="POST">
+		  {% include creator.template %}
+		  <button class="ui primary button" type="submit">Submit</button>
+		</form>
+	  </div>
+	</div>
+	{% endfor %}
+</div>
+{% endblock %}
+
+{% block item_notes %}
+	{% if item.index %}
+		{% include 'blocks/md_editor' item:item.index %}
+	{% endif %}
+{% endblock %}

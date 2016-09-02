@@ -1,0 +1,19 @@
+﻿{% extends 'layout.html' %}
+
+{% block content %}
+<style type="text/css">
+    .wrapper > .ui.container {
+      margin-top: 3em;
+    }
+	 .ui.container > h1 {
+      font-size: 3em;
+      text-align: center;
+      font-weight: normal;
+    }
+</style>
+
+<div class="ui container">
+<h1>{% block page_title %}{% endblock %}</h1>
+{% block page_content %}{% endblock %}
+</div>
+{% endblock %}

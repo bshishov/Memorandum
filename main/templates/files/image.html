@@ -1,0 +1,9 @@
+{% extends 'file_layout.html' %}
+
+{% block file_content %}
+<div class="image-file center-align">
+    <div>
+        <img class="responsive-img" src="{{item.url}}?action=raw" data-caption="{{item.name}}">
+    </div>
+</div>
+{% endblock %}

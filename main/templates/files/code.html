@@ -1,0 +1,48 @@
+{% extends 'file_layout.html' %}
+
+{% block file_content %}
+<div id="editor"></div>
+<script src="{% static 'js/ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
+<script src="{% static 'js/ace/ext-modelist.js' %}" type="text/javascript" charset="utf-8"></script>
+<script>
+    $(document).ready(function(){
+        var path = "{{item.url}}?action=raw";
+
+        $.ajax({
+          url: path,
+          dataType: "text",
+          success: function(data) {
+            var modelist = ace.require("ace/ext/modelist");
+            var mode = modelist.getModeForPath(path).mode;
+            var editor = ace.edit("editor");
+			editor.$blockScrolling = Infinity;
+            editor.setTheme("ace/theme/github");
+            editor.getSession().setValue(data, -1);
+            editor.getSession().setMode(mode);
+            editor.setAutoScrollEditorIntoView(true);
+            editor.setOption("minLines", 10);
+			editor.setFontSize(14);
+            editor.setOption("scrollPastEnd", true);
+
+
+			var heightUpdateFunction = function() {
+				$('#editor').height($('#editor').parent().height());
+				editor.resize();
+			};
+
+			// Set initial size to match initial content
+			heightUpdateFunction();
+
+			// Whenever a change happens inside the ACE editor, update
+			// the size again
+			//editor.getSession().on('change', heightUpdateFunction);
+			$( window ).resize(heightUpdateFunction);
+          },
+        });
+
+
+
+
+    });
+</script>
+{% endblock %}
