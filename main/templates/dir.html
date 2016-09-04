@@ -1,4 +1,4 @@
-﻿{% extends 'item_layout.html' %}
+{% extends 'item_layout.html' %}
 
 {% block item_controls %}
 	<div class="ui item">
@@ -32,15 +32,15 @@ $('.dropdown')
 <div class="ui container">
 	<div class="ui basic segment">
 		<div class="thumbnails">
-			{% for child in item.child_directories %}
-			<a class="thumbnail" href="{{ child.URL }}">
-				{% include child.thumbnail_template item:child %}
+			{% for child in child_files %}
+			<a class="thumbnail" href="{{ child.url_path }}">
+				{% include child.thumbnail_template %}
 				<div class="label">{{ child.name }}</div>
 			</a>
 			{% endfor %}
-			{% for child in item.child_files %}
-			<a class="thumbnail" href="{{ child.URL }}">
-				{% include child.thumbnail_template item:child %}
+			{% for child in child_dirs %}
+			<a class="thumbnail" href="{{ child.url_path }}">
+				{% include child.thumbnail_template %}
 				<div class="label">{{ child.name }}</div>
 			</a>
 			{% endfor %}
@@ -63,6 +63,6 @@ $('.dropdown')
 
 {% block item_notes %}
 	{% if item.index %}
-		{% include 'blocks/md_editor' item:item.index %}
+		{% include 'blocks/md_editor' %}
 	{% endif %}
 {% endblock %}

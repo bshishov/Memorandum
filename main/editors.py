@@ -68,13 +68,19 @@ class DirectoryEditor(Editor):
 
     @staticmethod
     def show(item, request, permissions):
-        child_list = os.listdir(item.absolutePath)
-        child_items = []
+        child_list = os.listdir(item.absolute_path)
+        child_files = []
+        child_dirs = []
         for child in child_list:
-            absolute_path = os.path.join(item.absolutePath, child)
-            url_path = item.urlPath + "/" + child
-            child_items.append(items.Item(absolute_path, item.owner, url_path))
+            absolute_path = os.path.join(item.absolute_path, child)
+            url_path = item.url_path + "/" + child
+            child_item = items.Item(absolute_path, item.owner, url_path)
+            if child_item.is_dir():
+                child_dirs.append(child_item)
+            else:
+                child_item.thumbnail_template = "blocks/thumbnails/file.html"
+                child_files.append(child_item)
         host = request.get_host()
-        template = loader.get_template("directory.html")
-        context = Context({'childItems': child_items, 'host': host})
+        template = loader.get_template("dir.html")
+        context = Context({'child_dirs': child_dirs, 'child_files': child_files, 'host': host})
         return HttpResponse(template.render(context))
