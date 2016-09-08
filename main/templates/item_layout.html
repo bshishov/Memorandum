@@ -1,4 +1,4 @@
-﻿{% extends 'layout.html' %}
+{% extends 'layout.html' %}
 
 {% block content %}
 <div class="ui vertical inverted left menu sidebar">
@@ -36,8 +36,8 @@
 	</a>
 	<div class="item">
 		<div class="ui big breadcrumb">
-			{% for b in item.Breadcrumbs %}
-				<a class="section" href="{{b.url}}">
+			{% for b in breadcrumbs %}
+				<a class="section" href="{{b.url_path}}">
 					{% if b.is_root %}<i class="icon home"></i>{% else %}{{b.name}}{% endif %}
 				</a>
 				<div class="divider"> / </div>

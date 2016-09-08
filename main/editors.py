@@ -51,7 +51,7 @@ class TextEditor(Editor):
 
     @staticmethod
     def show(item, request, permissions):
-        f = open(item.absolutePath, 'r')
+        f = open(item.absolute_path, 'r')
         content = f.read()
         f.close()
         template = loader.get_template("text_file.html")
@@ -75,12 +75,18 @@ class DirectoryEditor(Editor):
             absolute_path = os.path.join(item.absolute_path, child)
             url_path = item.url_path + "/" + child
             child_item = items.Item(absolute_path, item.owner, url_path)
-            if child_item.is_dir():
+            if child_item.is_dir:
                 child_dirs.append(child_item)
             else:
-                child_item.thumbnail_template = "blocks/thumbnails/file.html"
                 child_files.append(child_item)
         host = request.get_host()
+        breadcrumbs = []
+        breadcrumb = item
+        breadcrumbs.append(breadcrumb)
+        while not breadcrumb.is_root:
+            breadcrumb = breadcrumb.get_parent()
+            breadcrumbs.append(breadcrumb)
+        breadcrumbs.reverse()
         template = loader.get_template("dir.html")
-        context = Context({'child_dirs': child_dirs, 'child_files': child_files, 'host': host})
+        context = Context({'breadcrumbs': breadcrumbs, 'child_dirs': child_dirs, 'child_files': child_files, 'host': host})
         return HttpResponse(template.render(context))

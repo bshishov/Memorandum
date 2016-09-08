@@ -36,7 +36,7 @@ def login_view(request):
     if user.is_authenticated:
         return redirect("/"+user.username)
     else:
-        return render(request, 'login_form.html')
+        return render(request, 'login.html')
 
 
 # authenticates user
@@ -74,8 +74,6 @@ def index(request, user_name, relative_path):
         current_item_path = os.path.join(home_dir, relative_path)
         # making current item from homedir and url params
         current_item = items.Item(current_item_path, url_user, request.get_full_path())
-        if current_item.url_path == url_user:
-            current_item.is_root = True
         # check if request_user can access needed item
         permission = models.Sharing.get_permission(request_user, current_item)
         # getting the needed action or 'show' by default

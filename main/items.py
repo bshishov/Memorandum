@@ -6,20 +6,32 @@ class Item:
     def __init__(self, path, user, url):
         if not os.path.exists(path):
             raise FileNotFoundError
-        parts = os.path.split(path)
         self.extension = os.path.splitext(path)[1]
-        path_without_name = parts[0]
-        self.name = parts[1]
-        if self.name == "":
-            self.name = os.path.split(path_without_name)[1]
         self.absolute_path = path
-        self.url_path = url.rstrip('/')
+        self.parent_path = os.path.dirname(path)
+        self.name = os.path.basename(path)
+        if self.name == "":
+            self.name = os.path.basename(self.parent_path)
+            self.parent_path = os.path.dirname(self.parent_path)
+        if os.path.isdir(self.absolute_path):
+            self.thumbnail_template = "blocks/thumbnails/dir.html"
+            self.is_dir = True
+        else:
+            self.thumbnail_template = "blocks/thumbnails/file.html"
+            self.is_dir = False
         self.owner = user
-        self.is_root = False
-        self.thumbnail_template = "blocks/thumbnails/dir.html"
+        self.url_path = url.rstrip('/')
+        if self.url_path.lstrip('/') == user.username:
+            self.is_root = True
+        else:
+            self.is_root = False
+        parent_url_length = self.url_path.rfind('/')
+        self.parent_url = self.url_path[:parent_url_length]
+        pass
 
     def __str__(self):
         return self.name  # lol
 
-    def is_dir(self):
-        return os.path.isdir(self.absolute_path)
+    def get_parent(self):
+        parent_item = Item(self.parent_path, self.owner, self.parent_url)
+        return parent_item
