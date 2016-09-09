@@ -25,5 +25,5 @@ urlpatterns = [
     url(r'^login/?$', views.login_view),
     url(r'^logout/?$', views.logout_view),
     url(r'^$', views.auth),
-    url(r'^(\w+)/?([^?]*)', views.index),
+    url(r'^(?P<user_name>\w+)/?(?P<relative_path>[^?]*)', views.index),
 ]
