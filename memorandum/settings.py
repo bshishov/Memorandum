@@ -12,7 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 from .local_settings import *
 import os
-from main import editors
+# from main import editors
 
 
 # Quick-start development settings - unsuitable for production
@@ -105,8 +105,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
-# array of editors for different types of items
-EDITORS = [editors.DirectoryEditor(), editors.TextEditor(), editors.UniversalEditor()]
 
 # permissions that describe access mode
 PERMISSIONS = {'nothing': 0, 'show': 1, 'append': 3, 'edit': 7, 'share': 15, 'Chuck_Norris': 9999}

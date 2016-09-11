@@ -7,7 +7,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from . import models
 from . import items
-from . import editors
+from . import apps
 import os
 
 
@@ -70,10 +70,8 @@ def index(request, user_name, relative_path):
         if not request_user.is_authenticated:
             return redirect("/login")
         url_user = User.objects.get(username=user_name)
-        home_dir = models.HomeDirectory.objects.get(uid=url_user).home_dir
-        current_item_path = os.path.join(home_dir, relative_path)
         # making current item from homedir and url params
-        current_item = items.Item(current_item_path, url_user, request.get_full_path())
+        current_item = items.Item(url_user, relative_path)
         # check if request_user can access needed item
         permission = models.Sharing.get_permission(request_user, current_item)
         # getting the needed action or 'show' by default
@@ -83,7 +81,7 @@ def index(request, user_name, relative_path):
         # getting the needed editor or searching for default editor
         editor_name = request.GET.get('editor', None)
         if editor_name is None:
-            for possibleEditor in settings.EDITORS:
+            for possibleEditor in apps.EDITORS:
                 if possibleEditor.can_handle(current_item):
                     editor = possibleEditor
                     break

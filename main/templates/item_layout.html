@@ -36,8 +36,8 @@
 	</a>
 	<div class="item">
 		<div class="ui big breadcrumb">
-			{% for b in breadcrumbs %}
-				<a class="section" href="{{b.url_path}}">
+			{% for b in item.breadcrumbs %}
+				<a class="section" href="/{{b.url}}">
 					{% if b.is_root %}<i class="icon home"></i>{% else %}{{b.name}}{% endif %}
 				</a>
 				<div class="divider"> / </div>

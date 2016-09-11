@@ -68,25 +68,14 @@ class DirectoryEditor(Editor):
 
     @staticmethod
     def show(item, request, permissions):
-        child_list = os.listdir(item.absolute_path)
+        child_list = item.children
         child_files = []
         child_dirs = []
         for child in child_list:
-            absolute_path = os.path.join(item.absolute_path, child)
-            url_path = item.url_path + "/" + child
-            child_item = items.Item(absolute_path, item.owner, url_path)
-            if child_item.is_dir:
-                child_dirs.append(child_item)
+            if child.is_dir:
+                child_dirs.append(child)
             else:
-                child_files.append(child_item)
-        host = request.get_host()
-        breadcrumbs = []
-        breadcrumb = item
-        breadcrumbs.append(breadcrumb)
-        while not breadcrumb.is_root:
-            breadcrumb = breadcrumb.get_parent()
-            breadcrumbs.append(breadcrumb)
-        breadcrumbs.reverse()
+                child_files.append(child)
         template = loader.get_template("dir.html")
-        context = Context({'breadcrumbs': breadcrumbs, 'child_dirs': child_dirs, 'child_files': child_files, 'host': host})
+        context = Context({'item': item, 'child_dirs': child_dirs, 'child_files': child_files, })
         return HttpResponse(template.render(context))

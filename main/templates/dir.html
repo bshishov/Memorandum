@@ -33,13 +33,13 @@ $('.dropdown')
 	<div class="ui basic segment">
 		<div class="thumbnails">
 			{% for child in child_files %}
-			<a class="thumbnail" href="{{ child.url_path }}">
+			<a class="thumbnail" href="/{{ child.url }}">
 				{% include child.thumbnail_template %}
 				<div class="label">{{ child.name }}</div>
 			</a>
 			{% endfor %}
 			{% for child in child_dirs %}
-			<a class="thumbnail" href="{{ child.url_path }}">
+			<a class="thumbnail" href="/{{ child.url }}">
 				{% include child.thumbnail_template %}
 				<div class="label">{{ child.name }}</div>
 			</a>
