@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 from .local_settings import *
 import os
-# from main import editors
 
 
 # Quick-start development settings - unsuitable for production

@@ -1,6 +1,5 @@
 from django.shortcuts import render, redirect
 from django.http import HttpResponse
-from django.template import Context, loader, RequestContext
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -8,7 +7,6 @@ from django.conf import settings
 from . import models
 from . import items
 from . import apps
-import os
 
 
 # help function - need to create users and home directories

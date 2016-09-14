@@ -3,6 +3,8 @@ from django.template import Context, loader, RequestContext
 from django.http import HttpResponse
 from . import items
 import os
+import shutil
+import tempfile
 
 
 # abstract editor
@@ -66,7 +68,14 @@ class DirectoryEditor(Editor):
 
     @staticmethod
     def download(item, request, permissions):
-        return HttpResponse("lol")
+        temp_dir = tempfile.mkdtemp()
+        archive = os.path.join(temp_dir, item.name)
+        root_dir = item.absolute_path
+        data = open(shutil.make_archive(archive, 'zip', root_dir), 'rb').read()
+        shutil.rmtree(temp_dir)
+        response = HttpResponse(data, content_type='application/zip')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % (item.name + '.zip')
+        return response
 
     @staticmethod
     def upload(item, request, permissions):
