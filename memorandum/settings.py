@@ -107,4 +107,4 @@ STATIC_URL = '/static/'
 
 
 # permissions that describe access mode
-PERMISSIONS = {'nothing': 0, 'show': 1, 'append': 3, 'edit': 7, 'share': 15, 'Chuck_Norris': 9999}
+PERMISSIONS = {'nothing': 0, 'show': 1, 'download': 3, 'rename': 7, 'remove': 7, 'share': 15, 'Chuck_Norris': 9999}
