@@ -7,4 +7,4 @@ class MainConfig(AppConfig):
 
 
 # array of editors for different types of items
-EDITORS = [editors.DirectoryEditor(), editors.TextEditor(), editors.UniversalEditor()]
+EDITORS = [editors.CodeEditor(), editors.DirectoryEditor(), editors.FileEditor(), editors.UniversalEditor()]

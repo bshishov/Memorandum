@@ -1,12 +1,13 @@
 {% extends 'file_layout.html' %}
 
 {% block file_content %}
+{% load staticfiles %}
 <div id="editor"></div>
 <script src="{% static 'js/ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
 <script src="{% static 'js/ace/ext-modelist.js' %}" type="text/javascript" charset="utf-8"></script>
 <script>
     $(document).ready(function(){
-        var path = "{{item.url}}?action=raw";
+        var path = "/{{item.url}}?action=raw";
 
         $.ajax({
           url: path,

@@ -33,7 +33,7 @@ class Item:
             self.parent_url = self.rel_path[:parent_url_length]
         else:
             self.parent_url = ""
-        pass
+        self.size = os.path.getsize(self.absolute_path)
 
     def __str__(self):
         return self.name  # lol

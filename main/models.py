@@ -21,20 +21,20 @@ class HomeDirectory (models.Model):
 # need to store information about directory-shareing
 class Sharing (models.Model):
     # owner of shared dir
-    owner = models.OneToOneField(User, related_name="owner")
+    owner = models.OneToOneField(User, related_name="sharings")
     # wich item is shared
-    item = models.CharField(max_length=90)
+    item = models.CharField(max_length=512)
     # with who it is shared
     shared_with = models.ForeignKey(User)
     # bitmask - what owner allows second person to do
-    rgts = models.IntegerField()
+    permissions = models.IntegerField()
 
     def __str__(self):
         return self.directory + " is shared with: " + self.sharedWith.username
 
     # checks if the user is allowed to do smth with directory
-    @staticmethod
-    def get_permission(user, item):
+    @classmethod
+    def get_permission(cls, user, item):
         if user == item.owner:
             return settings.PERMISSIONS.get('Chuck_Norris')
         sharing_notes = Sharing.objects.filter(owner=item.owner)

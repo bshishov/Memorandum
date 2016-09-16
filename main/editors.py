@@ -25,8 +25,8 @@ class Editor:
     def not_exists(self):
         return HttpResponse("No such action")
 
-    @staticmethod
-    def show(item, request, permissions):
+    @classmethod
+    def show(cls, item, request, permissions):
         return HttpResponse("Sup, i handled " + item.name)
 
 
@@ -40,8 +40,8 @@ class UniversalEditor(Editor):
     def can_handle(self, item):
         return True
 
-    @staticmethod
-    def show(item, request, permissions):
+    @classmethod
+    def show(cls, item, request, permissions):
         return HttpResponse("item " + item.name + " with extension " + item.extension + " handled whith universal editor")
 
 
@@ -52,8 +52,8 @@ class DirectoryEditor(Editor):
         self.name = "directory"
         self.extensions = [""]
 
-    @staticmethod
-    def show(item, request, permissions):
+    @classmethod
+    def show(cls, item, request, permissions):
         child_list = item.children
         child_files = []
         child_dirs = []
@@ -62,12 +62,11 @@ class DirectoryEditor(Editor):
                 child_dirs.append(child)
             else:
                 child_files.append(child)
-        template = loader.get_template("dir.html")
         context = Context({'item': item, 'child_dirs': child_dirs, 'child_files': child_files, })
-        return HttpResponse(template.render(context))
+        return render(request, "dir.html", context)
 
-    @staticmethod
-    def download(item, request, permissions):
+    @classmethod
+    def download(cls, item, request, permissions):
         temp_dir = tempfile.mkdtemp()
         archive = os.path.join(temp_dir, item.name)
         root_dir = item.absolute_path
@@ -77,8 +76,8 @@ class DirectoryEditor(Editor):
         response['Content-Disposition'] = 'attachment; filename="%s"' % (item.name + '.zip')
         return response
 
-    @staticmethod
-    def upload(item, request, permissions):
+    @classmethod
+    def upload(cls, item, request, permissions):
         return HttpResponse("lol")
 
 
@@ -89,17 +88,15 @@ class FileEditor(Editor):
         self.name = "file"
         self.extensions = [".txt", ".hex", ".bin", ".ini"]
 
-    @staticmethod
-    def raw(item, request, permissions):
+    @classmethod
+    def raw(cls, item, request, permissions):
         f = open(item.absolute_path, 'r')
         content = f.read()
         f.close()
-        template = loader.get_template("text_file.html")
-        context = Context({'content': content})
-        return HttpResponse(template.render(context))
+        return HttpResponse(content)
 
-    @staticmethod
-    def download(item, request, permissions):
+    @classmethod
+    def download(cls, item, request, permissions):
         f = open(item.absolute_path, 'r')
         content = f.read()
         f.close()
@@ -108,31 +105,27 @@ class FileEditor(Editor):
         response['X-Sendfile'] = item.name
         return response
 
-    @staticmethod
-    def rename(item, request, permissions):
+    @classmethod
+    def rename(cls, item, request, permissions):
         new_name = request.GET.get('name', item.name)
         new_path = os.path.join(item.parent_path, new_name)
         os.rename(item.absolute_path, new_path)
         return redirect("/" + item.parent.url)
 
-    @staticmethod
-    def remove(item, request, permissions):
+    @classmethod
+    def remove(cls, item, request, permissions):
         os.remove(item.absolute_path)
         return redirect("/" + item.parent.url)
 
 
 # test editor, that only shows text file content
-class TextEditor(FileEditor):
+class CodeEditor(FileEditor):
     def __init__(self):
-        super(TextEditor, self).__init__()
-        self.name = "text"
+        super(CodeEditor, self).__init__()
+        self.name = "code"
         self.extensions = [".txt", ".hex", ".bin", ".ini"]
 
-    @staticmethod
-    def show(item, request, permissions):
-        f = open(item.absolute_path, 'r')
-        content = f.read()
-        f.close()
-        template = loader.get_template("text_file.html")
-        context = Context({'content': content})
-        return HttpResponse(template.render(context))
+    @classmethod
+    def show(cls, item, request, permissions):
+        context = Context({'item': item})
+        return render(request, "files/code.html", context)

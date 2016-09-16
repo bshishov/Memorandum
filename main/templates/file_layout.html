@@ -1,10 +1,9 @@
-﻿{% extends 'item_layout.html' %}
+{% extends 'item_layout.html' %}
 
 {% block item_controls %}
-	<div class="ui item"><div class="ui label popuped" data-content="{{ item.Mime }}">{{ item.mime|truncate:20 }}</div></div>
 	<div class="ui item"><div class="ui label">{{ item.modified }}</div> </div>
 	<a class="ui item" href="{{item.url}}?action=raw"><i class="code icon"></i> Raw</a>
-	<a class="ui item" href="{{item.url}}?action=download"><i class="download icon"></i> Download <div class="ui label">{{ item.size|readable_size }}</div></a>
+	<a class="ui item" href="{{item.url}}?action=download"><i class="download icon"></i> Download <div class="ui label">{{ item.size|filesizeformat }}</div></a>
 	<a class="ui item" href="{{item.url}}?action=delete" title="Delete this file">
 	<i class="delete icon"></i> Delete</a>
 	<a class="ui item" href="javascript:;" onclick="$('.notes').transition('slide left');"><i class="comments icon"></i> Comments</a>

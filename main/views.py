@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from django.template import Context, loader
 from django.http import HttpResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
@@ -7,25 +8,6 @@ from django.conf import settings
 from . import models
 from . import items
 from . import apps
-
-
-# help function - need to create users and home directories
-def create(request):
-    admin = User.objects.get(username="admin")
-    dumb = User.objects.get(username="dumb")
-    sharing = models.Sharing.objects.get(owner=admin)
-    sharing.item = "/subdir"
-    sharing.save()
-    return HttpResponse("done")
-
-
-# help function - need to show existing users and home directories
-# for ensure that they are created
-def show(request):
-    admin = User.objects.get(username="admin")
-    sharing = models.Sharing.objects.get(owner=admin)
-    resp = sharing.shared_with
-    return HttpResponse(resp)
 
 
 # shows login form
@@ -58,11 +40,14 @@ def logout_view(request):
 
 
 def access_denied(request):
-    return HttpResponse("Access denied!!")
+    context = Context({'error_code': 403,
+                       'error_message': "Access denied",
+                       'details': "You are not allowed to perform this action"})
+    return render(request, "error.html", context)
 
 
 # main view function - handles the given item
-def index(request, user_name, relative_path):
+def item_handler(request, user_name, relative_path):
     try:
         request_user = request.user
         if not request_user.is_authenticated:
@@ -93,13 +78,25 @@ def index(request, user_name, relative_path):
             if not editor.can_handle(current_item):
                 raise LookupError
     except ObjectDoesNotExist:
-        return HttpResponse("wrong user or home dir does not exist")
+        context = Context({'error_code': 404,
+                           'error_message': "Not exists",
+                           'details': "User or home directory  does not exist"})
+        return render(request, "error.html", context)
     except KeyError:
-        return HttpResponse("No such editor")
+        context = Context({'error_code': 404,
+                           'error_message': "Editor not found",
+                           'details': "Requested editor does not exist"})
+        return render(request, "error.html", context)
     except LookupError:
-        return HttpResponse("Wrong editor chosen")
+        context = Context({'error_code': 404,
+                           'error_message': "Wrong editor",
+                           'details': "Chosen editor can not handle this item"})
+        return render(request, "error.html", context)
     except FileNotFoundError:
-        return HttpResponse("404 not found")
+        context = Context({'error_code': 404,
+                           'error_message': "Not found",
+                           'details': "Requested file was not found"})
+        return render(request, "error.html", context)
     else:
         action = getattr(editor, chosen_action, editor.not_exists())
         return action(current_item, request, permission)
