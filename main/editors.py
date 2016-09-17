@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.template import Context, loader, RequestContext
 from django.http import HttpResponse
 from . import items
+from . import views
 import os
 import shutil
 import tempfile
@@ -122,15 +123,14 @@ class FileEditor(Editor):
         new_name = request.GET.get('name', item.name)
         new_path = os.path.join(item.parent_path, new_name)
         os.rename(item.absolute_path, new_path)
-        return redirect("item_handler", user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
+        return redirect(views.item_handler, user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
 
     @classmethod
     def remove(cls, item, request, permissions):
         os.remove(item.absolute_path)
-        return redirect("item_handler", user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
+        return redirect(views.item_handler, user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
 
 
-# test editor, that only shows text file content
 class CodeEditor(FileEditor):
     def __init__(self):
         super(CodeEditor, self).__init__()
