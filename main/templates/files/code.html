@@ -14,7 +14,7 @@
           dataType: "text",
           success: function(data) {
             var modelist = ace.require("ace/ext/modelist");
-            var mode = modelist.getModeForPath(path).mode;
+            var mode = modelist.getModeForPath("{{item.url}}").mode;
             var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
             editor.setTheme("ace/theme/github");
