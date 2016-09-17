@@ -104,6 +104,18 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Here you can add your own set of editors
+# leave it commented to use default editors
+# EDITORS = [
+#    'UniversalEditor'
+# ]
 
 # permissions that describe access mode
-PERMISSIONS = {'nothing': 0, 'show': 1, 'raw': 1, 'download': 3, 'rename': 7, 'remove': 7, 'share': 15, 'Chuck_Norris': 9999}
+PERMISSIONS = {'nothing': 0,
+               'show': 1,
+               'raw': 1,
+               'download': 3,
+               'rename': 7,
+               'remove': 7,
+               'share': 15,
+               'Chuck_Norris': 9999}

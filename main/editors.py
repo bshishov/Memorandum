@@ -103,14 +103,14 @@ class FileEditor(Editor):
 
     @classmethod
     def raw(cls, item, request, permissions):
-        f = open(item.absolute_path, 'r')
+        f = open(item.absolute_path, 'rb')
         content = f.read()
         f.close()
         return HttpResponse(content)
 
     @classmethod
     def download(cls, item, request, permissions):
-        f = open(item.absolute_path, 'r')
+        f = open(item.absolute_path, 'rb')
         content = f.read()
         f.close()
         response = HttpResponse(content, content_type='application/force-download')
