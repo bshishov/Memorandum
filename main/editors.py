@@ -141,3 +141,15 @@ class CodeEditor(FileEditor):
     def show(cls, item, request, permissions):
         context = Context({'item': item})
         return render(request, "files/code.html", context)
+
+
+class MarkdownEditor(FileEditor):
+    def __init__(self):
+        super(MarkdownEditor, self).__init__()
+        self.name = "code"
+        self.extensions = [".markdown", ".md"]
+
+    @classmethod
+    def show(cls, item, request, permissions):
+        context = Context({'item': item})
+        return render(request, "files/md.html", context)
