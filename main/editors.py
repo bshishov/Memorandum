@@ -52,6 +52,12 @@ class DirectoryEditor(Editor):
         self.name = "directory"
         self.extensions = [""]
 
+    def can_handle(self, item):
+        if item.is_dir:
+            return True
+        else:
+            return False
+
     @classmethod
     def show(cls, item, request, permissions):
         child_list = item.children
@@ -88,6 +94,12 @@ class FileEditor(Editor):
         self.name = "file"
         self.extensions = [".txt", ".hex", ".bin", ".ini"]
 
+    def can_handle(self, item):
+        if item.extension in self.extensions and not item.is_dir:
+            return True
+        else:
+            return False
+
     @classmethod
     def raw(cls, item, request, permissions):
         f = open(item.absolute_path, 'r')
@@ -110,12 +122,12 @@ class FileEditor(Editor):
         new_name = request.GET.get('name', item.name)
         new_path = os.path.join(item.parent_path, new_name)
         os.rename(item.absolute_path, new_path)
-        return redirect("/" + item.parent.url)
+        return redirect("item_handler", user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
 
     @classmethod
     def remove(cls, item, request, permissions):
         os.remove(item.absolute_path)
-        return redirect("/" + item.parent.url)
+        return redirect("item_handler", user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
 
 
 # test editor, that only shows text file content
@@ -123,7 +135,7 @@ class CodeEditor(FileEditor):
     def __init__(self):
         super(CodeEditor, self).__init__()
         self.name = "code"
-        self.extensions = [".txt", ".hex", ".bin", ".ini"]
+        self.extensions = [".txt", ".hex", ".bin", ".ini", ""]
 
     @classmethod
     def show(cls, item, request, permissions):

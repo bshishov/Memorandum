@@ -14,7 +14,7 @@ from . import apps
 def login_view(request):
     user = request.user
     if user.is_authenticated:
-        return redirect("/"+user.username)
+        return redirect("item_handler", user_name=user.username, relative_path="")
     else:
         return render(request, 'login.html')
 
@@ -27,16 +27,16 @@ def auth(request):
         password = request.POST.get('password', "")
         user = authenticate(username=username, password=password)
         if user is None:
-            return redirect("/login")
+            return redirect("login_view")
         login(request, user)
-    return redirect("/" + user.username)
+    return redirect("item_handler",  user_name=user.username, relative_path="")
 
 
 def logout_view(request):
     current_user = request.user
     if current_user.is_authenticated:
         logout(request)
-    return redirect("/login")
+    return redirect("login_view")
 
 
 def access_denied(request):
@@ -51,7 +51,7 @@ def item_handler(request, user_name, relative_path):
     try:
         request_user = request.user
         if not request_user.is_authenticated:
-            return redirect("/login")
+            return redirect("login_view")
         url_user = User.objects.get(username=user_name)
         # making current item from homedir and url params
         current_item = items.Item(url_user, relative_path)
@@ -60,7 +60,7 @@ def item_handler(request, user_name, relative_path):
         # getting the needed action or 'show' by default
         chosen_action = request.GET.get('action', 'show')
         if not permission & settings.PERMISSIONS.get(chosen_action):
-            return redirect("/access_denied")
+            return redirect("access_denied")
         # getting the needed editor or searching for default editor
         editor_name = request.GET.get('editor', None)
         if editor_name is None:
