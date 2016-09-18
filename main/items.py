@@ -1,3 +1,4 @@
+from django.urls import reverse
 import os
 from . import models
 
@@ -55,8 +56,8 @@ class Item:
 
     @property
     def url(self):
-        full_url = self.owner.username + "/" + self.rel_path
-        full_url = full_url.rstrip("/")
+        full_url = reverse('item_handler', kwargs={'user_name': self.owner.username,
+                                                   'relative_path': self.rel_path})
         return full_url
 
     @property

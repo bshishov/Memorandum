@@ -43,7 +43,8 @@ class UniversalEditor(Editor):
 
     @classmethod
     def show(cls, item, request, permissions):
-        return HttpResponse("item " + item.name + " with extension " + item.extension + " handled whith universal editor")
+        return HttpResponse("item " + item.name + " with extension "
+                            + item.extension + " handled whith universal editor")
 
 
 # editor for directories
@@ -85,7 +86,13 @@ class DirectoryEditor(Editor):
 
     @classmethod
     def upload(cls, item, request, permissions):
-        return HttpResponse("lol")
+        if request.method == 'POST' and 'file' in request.FILES:
+            uploaded_file = request.FILES['file']
+            destination = open(os.path.join(item.absolute_path, uploaded_file.name), 'wb+')
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
+            destination.close()
+        return redirect(views.item_handler, user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
 
 
 # common editor for files
