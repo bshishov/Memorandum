@@ -153,10 +153,22 @@ class CodeEditor(FileEditor):
 class MarkdownEditor(FileEditor):
     def __init__(self):
         super(MarkdownEditor, self).__init__()
-        self.name = "code"
+        self.name = "markdown"
         self.extensions = [".markdown", ".md"]
 
     @classmethod
     def show(cls, item, request, permissions):
         context = Context({'item': item})
         return render(request, "files/md.html", context)
+
+
+class ImageEditor(FileEditor):
+    def __init__(self):
+        super(ImageEditor, self).__init__()
+        self.name = "image"
+        self.extensions = [".jpg", ".bmp", ".gif", ".png"]
+
+    @classmethod
+    def show(cls, item, request, permissions):
+        context = Context({'item': item})
+        return render(request, "files/image.html", context)

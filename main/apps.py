@@ -11,6 +11,7 @@ DEFAULT_EDITORS = [
     'CodeEditor',
     'MarkdownEditor',
     'DirectoryEditor',
+    'ImageEditor',
     'FileEditor',
     'UniversalEditor'
 ]
