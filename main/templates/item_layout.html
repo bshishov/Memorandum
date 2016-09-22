@@ -38,11 +38,11 @@
 		<div class="ui big breadcrumb">
 			{% for b in item.breadcrumbs %}
 				<a class="section" href="{{b.url}}">
-					{% if b.is_root %}<i class="icon home"></i>{% else %}{{b.name}}{% endif %}
+					{% if b.item.is_root %}<i class="icon home"></i>{% else %}{{b.name}}{% endif %}
 				</a>
 				<div class="divider"> / </div>
 			{% endfor %}
-			<div class="active section">{% if item.is_root %}<i class="icon home"></i> Home{% else %}{{ item.name }}{% endif %}</div>
+			<div class="active section">{% if item.item.is_root %}<i class="icon home"></i> Home{% else %}{{ item.name }}{% endif %}</div>
 		</div>
 	</div>
 

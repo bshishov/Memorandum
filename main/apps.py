@@ -25,3 +25,6 @@ for editor_name in editors_list:
     editor_constructor = getattr(editors, editor_name)
     editor = editor_constructor()
     EDITORS.append(editor)
+
+
+MIMES = settings.MIMES

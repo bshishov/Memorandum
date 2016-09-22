@@ -1,17 +1,17 @@
-from django.urls import reverse
 import os
+import shutil
+import tempfile
 from . import models
+from . import factories
 
 
 # abstract item - file or directory
 class Item:
-    def __init__(self, user, url):
-        self.rel_path = url.rstrip("/")
+    def __init__(self, user, path):
+        self.rel_path = path.rstrip("/")
         self.rel_path = self.rel_path.lstrip("/")
         home_dir = models.HomeDirectory.objects.get(uid=user).home_dir
         self.absolute_path = os.path.join(home_dir, self.rel_path)
-        if not os.path.exists(self.absolute_path):
-            raise FileNotFoundError
         self.owner = user
         self.extension = os.path.splitext(self.absolute_path)[1]
         self.parent_path = os.path.dirname(self.absolute_path)
@@ -19,53 +19,92 @@ class Item:
         if self.name == "":
             self.name = os.path.basename(self.parent_path)
             self.parent_path = os.path.dirname(self.parent_path)
-        if os.path.isdir(self.absolute_path):
-            self.thumbnail_template = "blocks/thumbnails/dir.html"
-            self.is_dir = True
+        parent_rel_path_length = self.rel_path.rfind('/')
+        if parent_rel_path_length != -1:
+            self.parent_rel_path = self.rel_path[:parent_rel_path_length]
         else:
-            self.thumbnail_template = "blocks/thumbnails/file.html"
-            self.is_dir = False
-        if self.rel_path == "" or self.rel_path == "/":
-            self.is_root = True
-        else:
-            self.is_root = False
-        parent_url_length = self.rel_path.rfind('/')
-        if parent_url_length != -1:
-            self.parent_url = self.rel_path[:parent_url_length]
-        else:
-            self.parent_url = ""
-        self.size = os.path.getsize(self.absolute_path)
+            self.parent_rel_path = ""
+        self.is_deleted = False
 
     def __str__(self):
         return self.name  # lol
 
     @property
     def parent(self):
-        parent_item = Item(self.owner, self.parent_url)
+        parent_item = Item(self.owner, self.parent_rel_path)
         return parent_item
 
     @property
+    def size(self):
+        return os.path.getsize(self.absolute_path)
+
+    @property
+    def parents(self):
+        parent_list = []
+        current_item = self
+        while not current_item.is_root:
+            current_item = current_item.parent
+            parent_list.append(current_item)
+        parent_list.reverse()
+        return parent_list
+
+    @property
+    def is_dir(self):
+        return os.path.isdir(self.absolute_path)
+
+    @property
+    def is_root(self):
+        if self.rel_path == "" or self.rel_path == "/":
+            return True
+        else:
+            return False
+
+    def rename(self, name):
+        new_path = os.path.join(self.parent_path, name)
+        os.rename(self.absolute_path, new_path)
+        self.name = name
+
+    def delete(self):
+        os.remove(self.absolute_path)
+        self.is_deleted = True
+
+
+class FileItem(Item):
+    def __init__(self, user, path):
+        super(FileItem, self).__init__(user, path)
+
+    def read_byte(self):
+        f = open(self.absolute_path, 'rb')
+        content = f.read()
+        f.close()
+        return content
+
+    def write_file(self, chunks):
+        f = open(self.absolute_path, 'wb+')
+        for chunk in chunks:
+            f.write(chunk)
+        f.close()
+
+
+class DirectoryItem(Item):
+    def __init__(self, user, path):
+        super(DirectoryItem, self).__init__(user, path)
+
+    @property
     def children(self):
+        child_factory = factories.Factory
         child_list = os.listdir(self.absolute_path)
         child_items = []
         for child in child_list:
             child_url = self.rel_path + "/" + child
-            child_item = Item(self.owner, child_url)
+            child_item = child_factory.get_instance(self.owner, child_url)  # Item(self.owner, child_url)
             child_items.append(child_item)
         return child_items
 
-    @property
-    def url(self):
-        full_url = reverse('item_handler', kwargs={'user_name': self.owner.username,
-                                                   'relative_path': self.rel_path})
-        return full_url
-
-    @property
-    def breadcrumbs(self):
-        breadcrumbs = []
-        breadcrumb = self
-        while not breadcrumb.is_root:
-            breadcrumb = breadcrumb.parent
-            breadcrumbs.append(breadcrumb)
-        breadcrumbs.reverse()
-        return breadcrumbs
+    def make_zip(self):
+        temp_dir = tempfile.mkdtemp()
+        archive = os.path.join(temp_dir, self.name)
+        root_dir = self.absolute_path
+        data = open(shutil.make_archive(archive, 'zip', root_dir), 'rb').read()
+        shutil.rmtree(temp_dir)
+        return data

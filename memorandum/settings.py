@@ -120,3 +120,16 @@ PERMISSIONS = {'nothing': 0,
                'remove': 7,
                'share': 15,
                'Chuck_Norris': 9999}
+
+MIMES = {'': 'application/x-binary',
+         '.txt': 'text/plain',
+         '.hex': 'text/plain',
+         '.bin': 'application/x-binary',
+         '.ini': 'text/plain',
+         '.markdown': 'text/plain',
+         '.md': 'text/plain',
+         '.gif': 'image/gif',
+         '.png': 'image/png',
+         '.bmp': 'image/bmp',
+         '.jpg': 'image/jpeg',
+         '.jpeg': 'image/pjpeg'}

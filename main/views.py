@@ -7,6 +7,7 @@ from django.conf import settings
 from . import models
 from . import items
 from . import apps
+from . import factories
 
 
 # shows login form
@@ -52,21 +53,20 @@ def item_handler(request, user_name, relative_path):
         if not request_user.is_authenticated:
             return redirect(login_view)
         url_user = User.objects.get(username=user_name)
+        factory = factories.Factory
         # making current item from homedir and url params
-        current_item = items.Item(url_user, relative_path)
+        current_item = factory.get_instance(url_user, relative_path) # items.Item(url_user, relative_path)
         # check if request_user can access needed item
         permission = models.Sharing.get_permission(request_user, current_item)
         # getting the needed action or 'show' by default
         chosen_action = request.GET.get('action', 'show')
         if not permission & settings.PERMISSIONS.get(chosen_action):
             return redirect(access_denied)
+        curr_representation = factory.get_representation(current_item)
         # getting the needed editor or searching for default editor
         editor_name = request.GET.get('editor', None)
         if editor_name is None:
-            for possibleEditor in apps.EDITORS:
-                if possibleEditor.can_handle(current_item):
-                    editor = possibleEditor
-                    break
+            editor = curr_representation.default_editor
         else:
             for possibleEditor in settings.EDITORS:
                 if possibleEditor.name == editor_name:
@@ -98,4 +98,4 @@ def item_handler(request, user_name, relative_path):
         return render(request, "error.html", context)
     else:
         action = getattr(editor, chosen_action, editor.not_exists())
-        return action(current_item, request, permission)
+        return action(curr_representation, request, permission)

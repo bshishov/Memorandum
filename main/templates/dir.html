@@ -34,13 +34,13 @@ $('.dropdown')
 		<div class="thumbnails">
 			{% for child in child_files %}
 			<a class="thumbnail" href="{{ child.url }}">
-				{% include child.thumbnail_template %}
+				{% include child.thumbnail %}
 				<div class="label">{{ child.name }}</div>
 			</a>
 			{% endfor %}
 			{% for child in child_dirs %}
 			<a class="thumbnail" href="{{ child.url }}">
-				{% include child.thumbnail_template %}
+				{% include child.thumbnail %}
 				<div class="label">{{ child.name }}</div>
 			</a>
 			{% endfor %}

@@ -3,6 +3,7 @@ from django.template import Context, loader, RequestContext
 from django.http import HttpResponse
 from . import items
 from . import views
+from . import item_reps
 import os
 import shutil
 import tempfile
@@ -14,6 +15,7 @@ class Editor:
         self.name = "editor"
         # list of extensions that can be handle
         self.extensions = []
+        self.thumbnail = "blocks/thumbnails/file.html"
 
     # raise exception if editor can not handle this item
     def can_handle(self, item):
@@ -27,8 +29,8 @@ class Editor:
         return HttpResponse("No such action")
 
     @classmethod
-    def show(cls, item, request, permissions):
-        return HttpResponse("Sup, i handled " + item.name)
+    def show(cls, item_rep, request, permissions):
+        return HttpResponse("Sup, i handled " + item_rep.item.name)
 
 
 # universal editor - can handle all items
@@ -42,9 +44,9 @@ class UniversalEditor(Editor):
         return True
 
     @classmethod
-    def show(cls, item, request, permissions):
-        return HttpResponse("item " + item.name + " with extension "
-                            + item.extension + " handled whith universal editor")
+    def show(cls, item_rep, request, permissions):
+        return HttpResponse("item " + item_rep.item.name + " with extension "
+                            + item_rep.item.extension + " handled whith universal editor")
 
 
 # editor for directories
@@ -53,6 +55,7 @@ class DirectoryEditor(Editor):
         super(DirectoryEditor, self).__init__()
         self.name = "directory"
         self.extensions = [""]
+        self.thumbnail = "blocks/thumbnails/dir.html"
 
     def can_handle(self, item):
         if item.is_dir:
@@ -61,38 +64,35 @@ class DirectoryEditor(Editor):
             return False
 
     @classmethod
-    def show(cls, item, request, permissions):
-        child_list = item.children
+    def show(cls, item_rep, request, permissions):
+        child_list = item_rep.item.children
         child_files = []
         child_dirs = []
         for child in child_list:
             if child.is_dir:
-                child_dirs.append(child)
+                child_dirs.append(item_reps.DirRep(child))
             else:
-                child_files.append(child)
-        context = Context({'item': item, 'child_dirs': child_dirs, 'child_files': child_files, })
+                child_files.append(item_reps.FileRep(child))
+        context = Context({'item': item_rep, 'child_dirs': child_dirs, 'child_files': child_files, })
         return render(request, "dir.html", context)
 
     @classmethod
-    def download(cls, item, request, permissions):
-        temp_dir = tempfile.mkdtemp()
-        archive = os.path.join(temp_dir, item.name)
-        root_dir = item.absolute_path
-        data = open(shutil.make_archive(archive, 'zip', root_dir), 'rb').read()
-        shutil.rmtree(temp_dir)
+    def download(cls, item_rep, request, permissions):
+        data = item_rep.item.make_zip()
         response = HttpResponse(data, content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="%s"' % (item.name + '.zip')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % (item_rep.name + '.zip')
         return response
 
     @classmethod
-    def upload(cls, item, request, permissions):
+    def upload(cls, item_rep, request, permissions):
         if request.method == 'POST' and 'file' in request.FILES:
             uploaded_file = request.FILES['file']
-            destination = open(os.path.join(item.absolute_path, uploaded_file.name), 'wb+')
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
-            destination.close()
-        return redirect(views.item_handler, user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
+            new_rel_path = item_rep.item.rel_path + "/" + uploaded_file.name
+            new_item = items.FileItem(item_rep.item.owner, new_rel_path)
+            new_item.write_file(uploaded_file.chunks())
+            redirect_username = item_rep.item.parent.owner.username
+            redirect_rel_path = item_rep.item.parent.rel_path
+        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
 
 
 # common editor for files
@@ -101,6 +101,7 @@ class FileEditor(Editor):
         super(FileEditor, self).__init__()
         self.name = "file"
         self.extensions = [".txt", ".hex", ".bin", ".ini"]
+        self.thumbnail = "blocks/thumbnails/file.html"
 
     def can_handle(self, item):
         if item.extension in self.extensions and not item.is_dir:
@@ -109,33 +110,32 @@ class FileEditor(Editor):
             return False
 
     @classmethod
-    def raw(cls, item, request, permissions):
-        f = open(item.absolute_path, 'rb')
-        content = f.read()
-        f.close()
-        return HttpResponse(content)
+    def raw(cls, item_rep, request, permissions):
+        data = item_rep.item.read_byte()
+        return HttpResponse(data)
 
     @classmethod
-    def download(cls, item, request, permissions):
-        f = open(item.absolute_path, 'rb')
-        content = f.read()
-        f.close()
+    def download(cls, item_rep, request, permissions):
+        content = item_rep.item.read_byte()
         response = HttpResponse(content, content_type='application/force-download')
-        response['Content-Disposition'] = 'attachment; filename=' + item.name
-        response['X-Sendfile'] = item.name
+        response['Content-Disposition'] = 'attachment; filename=' + item_rep.item.name
+        response['X-Sendfile'] = item_rep.item.name
         return response
 
     @classmethod
-    def rename(cls, item, request, permissions):
-        new_name = request.GET.get('name', item.name)
-        new_path = os.path.join(item.parent_path, new_name)
-        os.rename(item.absolute_path, new_path)
-        return redirect(views.item_handler, user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
+    def rename(cls, item_rep, request, permissions):
+        new_name = request.GET.get('name', item_rep.item.name)
+        item_rep.item.rename(new_name)
+        redirect_username = item_rep.item.parent.owner.username
+        redirect_rel_path = item_rep.item.parent.rel_path
+        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
 
     @classmethod
-    def remove(cls, item, request, permissions):
-        os.remove(item.absolute_path)
-        return redirect(views.item_handler, user_name=item.parent.owner.username, relative_path=item.parent.rel_path)
+    def remove(cls, item_rep, request, permissions):
+        item_rep.item.delete()
+        redirect_username = item_rep.item.parent.owner.username
+        redirect_rel_path = item_rep.item.parent.rel_path
+        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
 
 
 class CodeEditor(FileEditor):
@@ -145,8 +145,8 @@ class CodeEditor(FileEditor):
         self.extensions = [".txt", ".hex", ".bin", ".ini", ""]
 
     @classmethod
-    def show(cls, item, request, permissions):
-        context = Context({'item': item})
+    def show(cls, item_rep, request, permissions):
+        context = Context({'item': item_rep})
         return render(request, "files/code.html", context)
 
 
@@ -157,8 +157,8 @@ class MarkdownEditor(FileEditor):
         self.extensions = [".markdown", ".md"]
 
     @classmethod
-    def show(cls, item, request, permissions):
-        context = Context({'item': item})
+    def show(cls, item_rep, request, permissions):
+        context = Context({'item': item_rep})
         return render(request, "files/md.html", context)
 
 
@@ -167,8 +167,9 @@ class ImageEditor(FileEditor):
         super(ImageEditor, self).__init__()
         self.name = "image"
         self.extensions = [".jpg", ".bmp", ".gif", ".png"]
+        self.thumbnail = "blocks/thumbnails/image.html"
 
     @classmethod
-    def show(cls, item, request, permissions):
-        context = Context({'item': item})
+    def show(cls, item_rep, request, permissions):
+        context = Context({'item': item_rep})
         return render(request, "files/image.html", context)
