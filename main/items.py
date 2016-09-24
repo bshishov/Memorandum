@@ -27,7 +27,7 @@ class Item:
         self.is_deleted = False
 
     def __str__(self):
-        return self.name  # lol
+        return self.name
 
     @property
     def parent(self):

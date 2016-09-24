@@ -55,7 +55,7 @@ def item_handler(request, user_name, relative_path):
         url_user = User.objects.get(username=user_name)
         factory = factories.Factory
         # making current item from homedir and url params
-        current_item = factory.get_instance(url_user, relative_path) # items.Item(url_user, relative_path)
+        current_item = factory.get_instance(url_user, relative_path)
         # check if request_user can access needed item
         permission = models.Sharing.get_permission(request_user, current_item)
         # getting the needed action or 'show' by default
@@ -98,4 +98,4 @@ def item_handler(request, user_name, relative_path):
         return render(request, "error.html", context)
     else:
         action = getattr(editor, chosen_action, editor.not_exists())
-        return action(curr_representation, request, permission)
+        return action(current_item, request, permission)

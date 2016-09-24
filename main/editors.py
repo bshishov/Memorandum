@@ -29,8 +29,8 @@ class Editor:
         return HttpResponse("No such action")
 
     @classmethod
-    def show(cls, item_rep, request, permissions):
-        return HttpResponse("Sup, i handled " + item_rep.item.name)
+    def show(cls, item, request, permissions):
+        return HttpResponse("Sup, i handled " + item.name)
 
 
 # universal editor - can handle all items
@@ -44,9 +44,9 @@ class UniversalEditor(Editor):
         return True
 
     @classmethod
-    def show(cls, item_rep, request, permissions):
-        return HttpResponse("item " + item_rep.item.name + " with extension "
-                            + item_rep.item.extension + " handled whith universal editor")
+    def show(cls, item, request, permissions):
+        return HttpResponse("item " + item.name + " with extension "
+                            + item.extension + " handled whith universal editor")
 
 
 # editor for directories
@@ -64,8 +64,9 @@ class DirectoryEditor(Editor):
             return False
 
     @classmethod
-    def show(cls, item_rep, request, permissions):
-        child_list = item_rep.item.children
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.DirRep(item)
+        child_list = item.children
         child_files = []
         child_dirs = []
         for child in child_list:
@@ -77,21 +78,21 @@ class DirectoryEditor(Editor):
         return render(request, "dir.html", context)
 
     @classmethod
-    def download(cls, item_rep, request, permissions):
-        data = item_rep.item.make_zip()
+    def download(cls, item, request, permissions):
+        data = item.make_zip()
         response = HttpResponse(data, content_type='application/zip')
-        response['Content-Disposition'] = 'attachment; filename="%s"' % (item_rep.name + '.zip')
+        response['Content-Disposition'] = 'attachment; filename="%s"' % (item.name + '.zip')
         return response
 
     @classmethod
-    def upload(cls, item_rep, request, permissions):
+    def upload(cls, item, request, permissions):
         if request.method == 'POST' and 'file' in request.FILES:
             uploaded_file = request.FILES['file']
-            new_rel_path = item_rep.item.rel_path + "/" + uploaded_file.name
-            new_item = items.FileItem(item_rep.item.owner, new_rel_path)
+            new_rel_path = item.rel_path + "/" + uploaded_file.name
+            new_item = items.FileItem(item.owner, new_rel_path)
             new_item.write_file(uploaded_file.chunks())
-            redirect_username = item_rep.item.parent.owner.username
-            redirect_rel_path = item_rep.item.parent.rel_path
+            redirect_username = item.parent.owner.username
+            redirect_rel_path = item.parent.rel_path
         return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
 
 
@@ -110,31 +111,31 @@ class FileEditor(Editor):
             return False
 
     @classmethod
-    def raw(cls, item_rep, request, permissions):
-        data = item_rep.item.read_byte()
+    def raw(cls, item, request, permissions):
+        data = item.read_byte()
         return HttpResponse(data)
 
     @classmethod
-    def download(cls, item_rep, request, permissions):
-        content = item_rep.item.read_byte()
+    def download(cls, item, request, permissions):
+        content = item.read_byte()
         response = HttpResponse(content, content_type='application/force-download')
-        response['Content-Disposition'] = 'attachment; filename=' + item_rep.item.name
-        response['X-Sendfile'] = item_rep.item.name
+        response['Content-Disposition'] = 'attachment; filename=' + item.name
+        response['X-Sendfile'] = item.name
         return response
 
     @classmethod
-    def rename(cls, item_rep, request, permissions):
-        new_name = request.GET.get('name', item_rep.item.name)
-        item_rep.item.rename(new_name)
-        redirect_username = item_rep.item.parent.owner.username
-        redirect_rel_path = item_rep.item.parent.rel_path
+    def rename(cls, item, request, permissions):
+        new_name = request.GET.get('name', item.name)
+        item.rename(new_name)
+        redirect_username = item.parent.owner.username
+        redirect_rel_path = item.parent.rel_path
         return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
 
     @classmethod
-    def remove(cls, item_rep, request, permissions):
-        item_rep.item.delete()
-        redirect_username = item_rep.item.parent.owner.username
-        redirect_rel_path = item_rep.item.parent.rel_path
+    def remove(cls, item, request, permissions):
+        item.delete()
+        redirect_username = item.parent.owner.username
+        redirect_rel_path = item.parent.rel_path
         return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
 
 
@@ -145,7 +146,8 @@ class CodeEditor(FileEditor):
         self.extensions = [".txt", ".hex", ".bin", ".ini", ""]
 
     @classmethod
-    def show(cls, item_rep, request, permissions):
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.FileRep(item)
         context = Context({'item': item_rep})
         return render(request, "files/code.html", context)
 
@@ -157,7 +159,8 @@ class MarkdownEditor(FileEditor):
         self.extensions = [".markdown", ".md"]
 
     @classmethod
-    def show(cls, item_rep, request, permissions):
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.FileRep(item)
         context = Context({'item': item_rep})
         return render(request, "files/md.html", context)
 
@@ -170,6 +173,7 @@ class ImageEditor(FileEditor):
         self.thumbnail = "blocks/thumbnails/image.html"
 
     @classmethod
-    def show(cls, item_rep, request, permissions):
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.FileRep(item)
         context = Context({'item': item_rep})
         return render(request, "files/image.html", context)

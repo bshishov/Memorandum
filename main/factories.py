@@ -24,3 +24,12 @@ class Factory:
             return item_reps.DirRep(item)
         else:
             return item_reps.FileRep(item)
+
+
+class RepresentationFactory:
+    @classmethod
+    def get_representation(cls, item):
+        if os.path.isdir(item.absolute_path):
+            return item_reps.DirRep(item)
+        else:
+            return item_reps.FileRep(item)
