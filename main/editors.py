@@ -65,15 +65,15 @@ class DirectoryEditor(Editor):
 
     @classmethod
     def show(cls, item, request, permissions):
-        item_rep = item_reps.DirRep(item)
+        item_rep = item_reps.DirectoryRepresentation(item)
         child_list = item.children
         child_files = []
         child_dirs = []
         for child in child_list:
             if child.is_dir:
-                child_dirs.append(item_reps.DirRep(child))
+                child_dirs.append(item_reps.DirectoryRepresentation(child))
             else:
-                child_files.append(item_reps.FileRep(child))
+                child_files.append(item_reps.FileRepresentation(child))
         context = Context({'item': item_rep, 'child_dirs': child_dirs, 'child_files': child_files, })
         return render(request, "dir.html", context)
 
@@ -147,7 +147,7 @@ class CodeEditor(FileEditor):
 
     @classmethod
     def show(cls, item, request, permissions):
-        item_rep = item_reps.FileRep(item)
+        item_rep = item_reps.FileRepresentation(item)
         context = Context({'item': item_rep})
         return render(request, "files/code.html", context)
 
@@ -160,7 +160,7 @@ class MarkdownEditor(FileEditor):
 
     @classmethod
     def show(cls, item, request, permissions):
-        item_rep = item_reps.FileRep(item)
+        item_rep = item_reps.FileRepresentation(item)
         context = Context({'item': item_rep})
         return render(request, "files/md.html", context)
 
@@ -174,6 +174,8 @@ class ImageEditor(FileEditor):
 
     @classmethod
     def show(cls, item, request, permissions):
-        item_rep = item_reps.FileRep(item)
+        item_rep = item_reps.FileRepresentation(item)
         context = Context({'item': item_rep})
         return render(request, "files/image.html", context)
+
+

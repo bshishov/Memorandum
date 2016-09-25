@@ -1,21 +1,20 @@
 from django.urls import reverse
-from . import models
-from . import apps
+from memorandum import settings
+from . import factories
 
 
 class Representation:
-    def __init__(self, item):
+    def __init__(self, item, editor=None):
         self.name = item.name
         self.item = item
-        self.thumbnail = self.default_editor.thumbnail
+        self.editor = editor
 
     @property
-    def default_editor(self):
-        for possibleEditor in apps.EDITORS:
-            if possibleEditor.can_handle(self.item):
-                editor = possibleEditor
-                break
-        return editor
+    def thumbnail(self):
+        if self.editor is None:
+            return factories.EditorsFactory.get_default_for(self.item).thumbnail
+        else:
+            return editor.thumbnail
 
     @property
     def url(self):
@@ -32,15 +31,15 @@ class Representation:
         return item_breadcrumbs
 
 
-class FileRep(Representation):
+class FileRepresentation(Representation):
     def __init__(self, item):
-        super(FileRep, self).__init__(item)
-        self.mime = apps.MIMES.get(self.item.extension, 'application/x-binary')
+        super(FileRepresentation, self).__init__(item)
+        self.mime = settings.MIME_TYPES.get(self.item.extension, 'application/x-binary')
 
 
-class DirRep(Representation):
+class DirectoryRepresentation(Representation):
     def __init__(self, item):
-        super(DirRep, self).__init__(item)
+        super(DirectoryRepresentation, self).__init__(item)
         self.children = item.children
 
     @property

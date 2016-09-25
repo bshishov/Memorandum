@@ -31,7 +31,8 @@ class Item:
 
     @property
     def parent(self):
-        parent_item = Item(self.owner, self.parent_rel_path)
+        factory = factories.ItemFactory
+        parent_item = factory.get_instance(self.owner, self.parent_rel_path)
         return parent_item
 
     @property
@@ -92,7 +93,7 @@ class DirectoryItem(Item):
 
     @property
     def children(self):
-        child_factory = factories.Factory
+        child_factory = factories.ItemFactory
         child_list = os.listdir(self.absolute_path)
         child_items = []
         for child in child_list:
