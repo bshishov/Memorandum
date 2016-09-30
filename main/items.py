@@ -2,7 +2,19 @@ import os
 import shutil
 import tempfile
 from . import models
-from . import factories
+
+
+def get_instance(user, relative_path):
+    rel_path = relative_path.rstrip("/")
+    rel_path = rel_path.lstrip("/")
+    home_dir = models.HomeDirectory.objects.get(uid=user).home_dir
+    absolute_path = os.path.join(home_dir, rel_path)
+    if not os.path.exists(absolute_path):
+        raise FileNotFoundError
+    elif os.path.isdir(absolute_path):
+        return DirectoryItem(user, relative_path)
+    else:
+        return FileItem(user, relative_path)
 
 
 # abstract item - file or directory
@@ -31,8 +43,7 @@ class Item:
 
     @property
     def parent(self):
-        factory = factories.ItemFactory
-        parent_item = factory.get_instance(self.owner, self.parent_rel_path)
+        parent_item = get_instance(self.owner, self.parent_rel_path)
         return parent_item
 
     @property
@@ -93,12 +104,11 @@ class DirectoryItem(Item):
 
     @property
     def children(self):
-        child_factory = factories.ItemFactory
         child_list = os.listdir(self.absolute_path)
         child_items = []
         for child in child_list:
             child_url = self.rel_path + "/" + child
-            child_item = child_factory.get_instance(self.owner, child_url)  # Item(self.owner, child_url)
+            child_item = get_instance(self.owner, child_url)  # Item(self.owner, child_url)
             child_items.append(child_item)
         return child_items
 

@@ -107,7 +107,14 @@ STATIC_URL = '/static/'
 # Here you can add your own set of editors
 # leave it commented to use default editors
 # EDITORS = [
-#    'UniversalEditor'
+#    'CodeEditor',
+#    'MarkdownEditor',
+#    'DirectoryEditor',
+#    'ImageEditor',
+#    'FileEditor',
+#    'UniversalEditor',
+#    'main.a.A',
+#    'main.ab.AB',
 # ]
 
 # permissions that describe access mode

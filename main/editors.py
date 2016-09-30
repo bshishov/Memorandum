@@ -1,12 +1,57 @@
 from django.shortcuts import render, redirect
-from django.template import Context, loader, RequestContext
+from django.template import Context
 from django.http import HttpResponse
+from django.conf import settings
+import importlib
 from . import items
 from . import views
 from . import item_reps
-import os
-import shutil
-import tempfile
+
+
+def get_editor(name):
+    all_editors = get_all_editors()
+    editor = UniversalEditor
+    for possibleEditor in all_editors:
+        if possibleEditor.name == name:
+            editor = possibleEditor
+            break
+    return editor
+
+
+def get_all_editors():
+    default_editors = [
+        'CodeEditor',
+        'MarkdownEditor',
+        'DirectoryEditor',
+        'ImageEditor',
+        'FileEditor',
+        'UniversalEditor'
+    ]
+    if hasattr(settings, 'EDITORS') and len(settings.EDITORS) > 0:
+        editor_names = settings.EDITORS
+    else:
+        editor_names = default_editors
+    initialized_editors = []
+    for editor_name in editor_names:
+        module_path_parts = editor_name.rsplit(".", 1)
+        if len(module_path_parts) > 1:
+            module = importlib.import_module(module_path_parts[0])
+            editor_name = module_path_parts[1]
+            editor_constructor = getattr(module, editor_name)
+            initialized_editors.append(editor_constructor())
+        else:
+            editor = globals()[editor_name]()  # editor_constructor()
+            initialized_editors.append(editor)
+    return initialized_editors
+
+
+def get_default_for(item):
+    all_editors = get_all_editors()
+    for possibleEditor in all_editors:
+        if possibleEditor.can_handle(item):
+            default_editor = possibleEditor
+            break
+    return default_editor
 
 
 # abstract editor

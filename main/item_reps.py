@@ -1,6 +1,13 @@
 from django.urls import reverse
 from memorandum import settings
-from . import factories
+from . import editors
+
+
+def get_representation(item):
+    if os.path.isdir(item.absolute_path):
+        return item_reps.DirectoryRepresentation(item)
+    else:
+        return item_reps.FileRepresentation(item)
 
 
 class Representation:
@@ -12,7 +19,7 @@ class Representation:
     @property
     def thumbnail(self):
         if self.editor is None:
-            return factories.EditorsFactory.get_default_for(self.item).thumbnail
+            return editors.get_default_for(self.item).thumbnail
         else:
             return editor.thumbnail
 

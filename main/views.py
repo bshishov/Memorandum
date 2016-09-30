@@ -5,7 +5,8 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 from . import models
-from . import factories
+from . import items
+from . import editors
 
 
 # shows login form
@@ -51,9 +52,8 @@ def item_handler(request, user_name, relative_path):
         if not request_user.is_authenticated:
             return redirect(login_view)
         owner = User.objects.get(username=user_name)
-        factory = factories.ItemFactory
         # making current item from homedir and url params
-        current_item = factory.get_instance(owner, relative_path)
+        current_item = items.get_instance(owner, relative_path)
         # check if request_user can access needed item
         permission = models.Sharing.get_permission(request_user, current_item)
         # getting the needed action or 'show' by default
@@ -61,12 +61,15 @@ def item_handler(request, user_name, relative_path):
         if not permission & settings.PERMISSIONS.get(chosen_action):
             return redirect(access_denied)
         # getting the needed editor or searching for default editor
-        editor_factory = factories.EditorsFactory
         editor_name = request.GET.get('editor', None)
         if editor_name is None:
-            editor = editor_factory.get_default_for(current_item)
+            editor = editors.get_default_for(current_item)
         else:
-            editor = editor_factory.get_editor(editor_name)
+            editor = editors.get_editor(editor_name)
+            # check if the editor is suitable for this extension
+            # (if not, LookupException will be raised)
+            if not editor.can_handle(current_item):
+                raise LookupError
     except ObjectDoesNotExist:
         context = Context({'error_code': 404,
                            'error_message': "Not exists",
