@@ -1,4 +1,4 @@
-﻿<div class="md-editor">
+<div class="md-editor">
 	<div class="ui basic segment">
 		<div class="ui basic right floated buttons">
 			<a href="javascript:;" class="ui button toggle" data-tab="second"><i class="icon code"></i>Code</a>
@@ -18,7 +18,7 @@
 <script src="{% static 'js/me-markdown.standalone.min.js' %}" type="text/javascript" charset="utf-8"></script>
 <script>
     $(document).ready(function(){
-        var path = "{{item.url}}?action=raw";
+        var path = "{{item_rep.url}}?action=raw";
 		var md2html = new showdown.Converter();
 		var mediumEditor;
 
@@ -53,7 +53,7 @@
 
 		$(".md-editor .save").click(function() {
 			var val = $(".md-editor .md-raw").val();
-      $.post("{{item.url}}?action=save", { data: val })
+      $.post("{{item_rep.url}}?action=save", { data: val })
         //.done(function(data) { alert(data) })
         .error(function(error) { console.log(error) });
 		});

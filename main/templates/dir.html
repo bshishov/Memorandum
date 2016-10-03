@@ -13,9 +13,9 @@
 		</div>
 	</div>
 	<a class="ui item" href="javascript:;" onclick="$('#upload').modal('show');"><i class="upload icon"></i> Upload</a>
-	<div class="ui item"><div class="ui label">{{ item.modified }}</div></div>
-	<a class="ui item" href="{{ item.url }}?action=download"><i class="download icon"></i> Download</a>
-	<a class="ui item" href="{{ item.url }}?action=delete" title="Delete folder and all its contents"><i class="delete icon"></i> Delete</a>
+	<div class="ui item"><div class="ui label">{{ item_rep.modified }}</div></div>
+	<a class="ui item" href="{{ item_rep.url }}?action=download"><i class="download icon"></i> Download</a>
+	<a class="ui item" href="{{ item_rep.url }}?action=delete" title="Delete folder and all its contents"><i class="delete icon"></i> Delete</a>
 	<div class="ui item" href="javascript:;" onclick="$('.notes').transition('slide left');"><div class="ui button"><i class="file text icon"></i> Notes</div></div>
 <script type="text/javascript">
 $('.popuped').popup();
@@ -50,7 +50,7 @@ $('.dropdown')
   <div class="ui small modal" id="upload">
 	  <div class="header">Upload file</div>
 	  <div class="content">
-     <form class="ui form" action="{{ item.url }}?action=upload" enctype="multipart/form-data" method="POST">
+     <form class="ui form" action="{{ item_rep.url }}?action=upload" enctype="multipart/form-data" method="POST">
 		  {% include 'blocks/forms/upload.html' %}
 		  <button class="ui primary button" type="submit">Submit</button>
 		</form>

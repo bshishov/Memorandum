@@ -1,7 +1,6 @@
 {% extends 'file_layout.html' %}
 
 {% block file_content %}
-<audio controls>
-    <source src="{{item.url}}?action=raw" type="{{item.mime}}">
+<audio controls src="{{item_rep.url}}?action=raw" type="{{item_rep.mime}}">
 </audio>
 {% endblock %}

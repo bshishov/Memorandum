@@ -24,6 +24,8 @@ def get_all_editors():
         'MarkdownEditor',
         'DirectoryEditor',
         'ImageEditor',
+        'AudioEditor',
+        'VideoEditor',
         'FileEditor',
         'UniversalEditor'
     ]
@@ -40,7 +42,7 @@ def get_all_editors():
             editor_constructor = getattr(module, editor_name)
             initialized_editors.append(editor_constructor())
         else:
-            editor = globals()[editor_name]()  # editor_constructor()
+            editor = globals()[editor_name]()
             initialized_editors.append(editor)
     return initialized_editors
 
@@ -61,13 +63,6 @@ class Editor:
         # list of extensions that can be handle
         self.extensions = []
         self.thumbnail = "blocks/thumbnails/file.html"
-
-    # raise exception if editor can not handle this item
-    def can_handle(self, item):
-        if item.extension in self.extensions:
-            return True
-        else:
-            return False
 
     # returns if needed action was not found
     def not_exists(self):
@@ -119,7 +114,7 @@ class DirectoryEditor(Editor):
                 child_dirs.append(item_reps.DirectoryRepresentation(child))
             else:
                 child_files.append(item_reps.FileRepresentation(child))
-        context = Context({'item': item_rep, 'child_dirs': child_dirs, 'child_files': child_files, })
+        context = Context({'item_rep': item_rep, 'child_dirs': child_dirs, 'child_files': child_files, })
         return render(request, "dir.html", context)
 
     @classmethod
@@ -150,7 +145,8 @@ class FileEditor(Editor):
         self.thumbnail = "blocks/thumbnails/file.html"
 
     def can_handle(self, item):
-        if item.extension in self.extensions and not item.is_dir:
+        extension = item.extension.lower()
+        if extension in self.extensions and not item.is_dir:
             return True
         else:
             return False
@@ -193,7 +189,7 @@ class CodeEditor(FileEditor):
     @classmethod
     def show(cls, item, request, permissions):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item': item_rep})
+        context = Context({'item_rep': item_rep})
         return render(request, "files/code.html", context)
 
 
@@ -206,7 +202,7 @@ class MarkdownEditor(FileEditor):
     @classmethod
     def show(cls, item, request, permissions):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item': item_rep})
+        context = Context({'item_rep': item_rep})
         return render(request, "files/md.html", context)
 
 
@@ -220,7 +216,33 @@ class ImageEditor(FileEditor):
     @classmethod
     def show(cls, item, request, permissions):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item': item_rep})
+        context = Context({'item_rep': item_rep})
         return render(request, "files/image.html", context)
 
 
+class AudioEditor(FileEditor):
+    def __init__(self):
+        super(AudioEditor, self).__init__()
+        self.name = "audio"
+        self.extensions = [".mp3", ".vaw", ".m3u"]
+        self.thumbnail = "blocks/thumbnails/file.html"
+
+    @classmethod
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.FileRepresentation(item)
+        context = Context({'item_rep': item_rep})
+        return render(request, "files/audio.html", context)
+
+
+class VideoEditor(FileEditor):
+    def __init__(self):
+        super(VideoEditor, self).__init__()
+        self.name = "video"
+        self.extensions = [".mp4", ".avi", ".mov"]
+        self.thumbnail = "blocks/thumbnails/file.html"
+
+    @classmethod
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.FileRepresentation(item)
+        context = Context({'item_rep': item_rep})
+        return render(request, "files/video.html", context)

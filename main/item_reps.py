@@ -41,7 +41,8 @@ class Representation:
 class FileRepresentation(Representation):
     def __init__(self, item):
         super(FileRepresentation, self).__init__(item)
-        self.mime = settings.MIME_TYPES.get(self.item.extension, 'application/x-binary')
+        extension = self.item.extension.lower()
+        self.mime = settings.MIME_TYPES.get(extension, 'application/x-binary')
 
 
 class DirectoryRepresentation(Representation):

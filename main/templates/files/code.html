@@ -7,14 +7,14 @@
 <script src="{% static 'js/ace/ext-modelist.js' %}" type="text/javascript" charset="utf-8"></script>
 <script>
     $(document).ready(function(){
-        var path = "{{item.url}}?action=raw";
+        var path = "{{item_rep.url}}?action=raw";
 
         $.ajax({
           url: path,
           dataType: "text",
           success: function(data) {
             var modelist = ace.require("ace/ext/modelist");
-            var mode = modelist.getModeForPath("{{item.url}}").mode;
+            var mode = modelist.getModeForPath("{{item_rep.url}}").mode;
             var editor = ace.edit("editor");
 			editor.$blockScrolling = Infinity;
             editor.setTheme("ace/theme/github");
