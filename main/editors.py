@@ -224,7 +224,7 @@ class AudioEditor(FileEditor):
     def __init__(self):
         super(AudioEditor, self).__init__()
         self.name = "audio"
-        self.extensions = [".mp3", ".vaw", ".m3u"]
+        self.extensions = [".mp3", ".wav", ".m3u", ".ogg"]
         self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
@@ -238,7 +238,7 @@ class VideoEditor(FileEditor):
     def __init__(self):
         super(VideoEditor, self).__init__()
         self.name = "video"
-        self.extensions = [".mp4", ".avi", ".mov"]
+        self.extensions = [".mp4", ".avi", ".mov", ".webm"]
         self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod

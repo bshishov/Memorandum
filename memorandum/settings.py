@@ -142,4 +142,6 @@ MIME_TYPES = {'': 'application/x-binary',
               '.jpeg': 'image/pjpeg',
               '.mov': 'video/quicktime',
               '.avi': 'video/avi',
-              '.mp3': 'audio/mpeg3'}
+              '.mp3': 'audio/mpeg3',
+              '.webm': 'video/webm',
+              }
