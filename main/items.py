@@ -11,6 +11,8 @@ def get_instance(user, relative_path):
     absolute_path = os.path.join(home_dir, rel_path)
     if not os.path.exists(absolute_path):
         raise FileNotFoundError
+    elif not os.access(absolute_path, os.R_OK):
+        return None
     elif os.path.isdir(absolute_path):
         return DirectoryItem(user, relative_path)
     else:

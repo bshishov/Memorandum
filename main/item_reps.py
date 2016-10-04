@@ -1,6 +1,6 @@
 from django.urls import reverse
-from memorandum import settings
 from . import editors
+import mimetypes
 
 
 def get_representation(item):
@@ -41,8 +41,12 @@ class Representation:
 class FileRepresentation(Representation):
     def __init__(self, item):
         super(FileRepresentation, self).__init__(item)
-        extension = self.item.extension.lower()
-        self.mime = settings.MIME_TYPES.get(extension, 'application/x-binary')
+        mimetypes.init()
+        mime_type = mimetypes.guess_type(item.name)
+        if mime_type is None:
+            self.mime = 'application/octet-stream'
+        else:
+            self.mime = mime_type
 
 
 class DirectoryRepresentation(Representation):

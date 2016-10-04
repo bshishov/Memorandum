@@ -26,8 +26,7 @@ def get_all_editors():
         'ImageEditor',
         'AudioEditor',
         'VideoEditor',
-        'FileEditor',
-        'UniversalEditor'
+        'UniversalFileEditor'
     ]
     if hasattr(settings, 'EDITORS') and len(settings.EDITORS) > 0:
         editor_names = settings.EDITORS
@@ -71,22 +70,6 @@ class Editor:
     @classmethod
     def show(cls, item, request, permissions):
         return HttpResponse("Sup, i handled " + item.name)
-
-
-# universal editor - can handle all items
-class UniversalEditor(Editor):
-    def __init__(self):
-        super(UniversalEditor, self).__init__()
-        self.name = "universal"
-
-    # never raise exception
-    def can_handle(self, item):
-        return True
-
-    @classmethod
-    def show(cls, item, request, permissions):
-        return HttpResponse("item " + item.name + " with extension "
-                            + item.extension + " handled whith universal editor")
 
 
 # editor for directories
@@ -178,6 +161,24 @@ class FileEditor(Editor):
         redirect_username = item.parent.owner.username
         redirect_rel_path = item.parent.rel_path
         return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+
+
+class UniversalFileEditor(FileEditor):
+    def __init__(self):
+        super(UniversalFileEditor, self).__init__()
+        self.name = "universal"
+
+    def can_handle(self, item):
+        if not item.is_dir:
+            return True
+        else:
+            return False
+
+    @classmethod
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.FileRepresentation(item)
+        context = Context({'item_rep': item_rep})
+        return render(request, "files/default.html", context)
 
 
 class CodeEditor(FileEditor):

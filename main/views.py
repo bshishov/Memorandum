@@ -54,6 +54,8 @@ def item_handler(request, user_name, relative_path):
         owner = User.objects.get(username=user_name)
         # making current item from homedir and url params
         current_item = items.get_instance(owner, relative_path)
+        if current_item is None:
+            return redirect(access_denied)
         # check if request_user can access needed item
         permission = models.Sharing.get_permission(request_user, current_item)
         # getting the needed action or 'show' by default
