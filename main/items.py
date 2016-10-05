@@ -9,9 +9,8 @@ def get_instance(user, relative_path):
     rel_path = rel_path.lstrip("/")
     home_dir = models.HomeDirectory.objects.get(uid=user).home_dir
     absolute_path = os.path.join(home_dir, rel_path)
-    if not os.path.exists(absolute_path):
-        raise FileNotFoundError
-    elif not os.access(absolute_path, os.R_OK):
+    access_ok = os.access(absolute_path, os.F_OK | os.R_OK)
+    if not access_ok:
         return None
     elif os.path.isdir(absolute_path):
         return DirectoryItem(user, relative_path)
@@ -106,13 +105,18 @@ class DirectoryItem(Item):
 
     @property
     def children(self):
-        child_list = os.listdir(self.absolute_path)
         child_items = []
-        for child in child_list:
-            child_url = self.rel_path + "/" + child
-            child_item = get_instance(self.owner, child_url)  # Item(self.owner, child_url)
-            child_items.append(child_item)
-        return child_items
+        try:
+            child_list = os.listdir(self.absolute_path)
+        except PermissionError:
+            return child_items
+        else:
+            for child in child_list:
+                child_url = self.rel_path + "/" + child
+                child_item = get_instance(self.owner, child_url)  # Item(self.owner, child_url)
+                if child_item is not None:
+                    child_items.append(child_item)
+            return child_items
 
     def make_zip(self):
         temp_dir = tempfile.mkdtemp()
