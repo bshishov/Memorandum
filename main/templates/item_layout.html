@@ -77,6 +77,7 @@
 		<form class="ui form" action="?action=rename" method="POST">
 			<div class="field">
 				<label>Name</label>
+        {% csrf_token %}
 				<input type="text" name="name" placeholder="New name" value="{{ item_rep.name }}">
 			</div>
 			<button class="ui primary button" type="submit">Save</button>

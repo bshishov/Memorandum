@@ -127,3 +127,12 @@ PERMISSIONS = {'nothing': 0,
                'share': 15,
                'Chuck_Norris': 9999}
 
+# for OnlyOffice
+ONLYOFFICE_SERV_API_URL = "https://doc.onlyoffice.com/web-apps/apps/api/documents/api.js"
+
+EXTS_DOCUMENT = [".doc", ".docx"]
+
+EXTS_SPREADSHEET = [".xls", ".xlsx"]
+
+EXTS_PRESENTATION = [".ppt", ".pptx"]
+

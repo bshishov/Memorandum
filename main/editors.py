@@ -3,6 +3,9 @@ from django.template import Context
 from django.http import HttpResponse
 from django.conf import settings
 import importlib
+import zlib
+import re
+import datetime
 from . import items
 from . import views
 from . import item_reps
@@ -10,7 +13,7 @@ from . import item_reps
 
 def get_editor(name):
     all_editors = get_all_editors()
-    editor = UniversalEditor
+    editor = UniversalFileEditor
     for possibleEditor in all_editors:
         if possibleEditor.name == name:
             editor = possibleEditor
@@ -26,6 +29,7 @@ def get_all_editors():
         'ImageEditor',
         'AudioEditor',
         'VideoEditor',
+        'OnlyOfficeEditor',
         'UniversalFileEditor'
     ]
     if hasattr(settings, 'EDITORS') and len(settings.EDITORS) > 0:
@@ -149,7 +153,7 @@ class FileEditor(Editor):
 
     @classmethod
     def rename(cls, item, request, permissions):
-        new_name = request.GET.get('name', item.name)
+        new_name = request.POST.get('name', item.name)
         item.rename(new_name)
         redirect_username = item.parent.owner.username
         redirect_rel_path = item.parent.rel_path
@@ -247,3 +251,67 @@ class VideoEditor(FileEditor):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/video.html", context)
+
+
+class OnlyOfficeEditor(FileEditor):
+    def __init__(self):
+        super(OnlyOfficeEditor, self).__init__()
+        self.name = "office"
+        self.extensions = OnlyOfficeEditor.get_all_extensions()
+        self.thumbnail = "blocks/thumbnails/file.html"
+
+    @classmethod
+    def show(cls, item, request, permissions):
+        now = datetime.datetime.now()
+        curr_date = str(now.day) + "." + str(now.month) + "." + str(now.year)
+        api_src = settings.ONLYOFFICE_SERV_API_URL
+        item_rep = item_reps.FileRepresentation(item)
+        last_breadcrumb = len(item_rep.breadcrumbs) - 1
+        item_url = item_rep.url
+        parent_url = item_rep.breadcrumbs[last_breadcrumb].url
+        client_ip = request.META['REMOTE_ADDR']
+        doc_editor_key = OnlyOfficeEditor.get_doc_editor_key(client_ip, item_rep.name)
+        doc_type = OnlyOfficeEditor.get_document_type(item)
+        ext = item_rep.item.extension.lstrip(".")
+        context = Context({'item_rep': item_rep, 'api_src': api_src,
+                           'doc_type': doc_type, 'doc_editor_key': doc_editor_key,
+                           'client_ip': client_ip, 'parent_url': parent_url,
+                           'curr_date': curr_date, 'ext': ext, 'item_url': item_url})
+        return render(request, "files/office.html", context)
+
+    @classmethod
+    def get_document_type(cls, item):
+        ext = "." + item.extension
+        if item.extension in settings.EXTS_DOCUMENT:
+            return "text"
+        elif item.extension in settings.EXTS_SPREADSHEET:
+            return "spreadsheet"
+        elif item.extension in settings.EXTS_PRESENTATION:
+            return "presentation"
+        else:
+            return ""
+
+    @classmethod
+    def get_all_extensions(cls):
+        extensions = []
+        extensions.extend(settings.EXTS_DOCUMENT)
+        extensions.extend(settings.EXTS_SPREADSHEET)
+        extensions.extend(settings.EXTS_PRESENTATION)
+        return extensions
+
+    @classmethod
+    def get_doc_editor_key(cls, ip, name):
+        return OnlyOfficeEditor.generate_revision_id(ip + "/" + name)
+
+    @classmethod
+    def generate_revision_id(cls, key):
+        if len(key) > 20:
+            key = zlib.crc32(key.encode('utf-8'))
+        key = re.sub("[^0-9-.a-zA-Z_=]", "_", str(key))
+        limits = [20, len(key)]
+        key = key[:min(limits)]
+        return key
+
+    @classmethod
+    def track(cls, item, request, permissions):
+        pass

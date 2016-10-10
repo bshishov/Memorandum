@@ -68,10 +68,6 @@ def item_handler(request, user_name, relative_path):
             editor = editors.get_default_for(current_item)
         else:
             editor = editors.get_editor(editor_name)
-            # check if the editor is suitable for this extension
-            # (if not, LookupException will be raised)
-            if not editor.can_handle(current_item):
-                raise LookupError
     except ObjectDoesNotExist:
         context = Context({'error_code': 404,
                            'error_message': "Not exists",
