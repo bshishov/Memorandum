@@ -13,7 +13,7 @@
 		</div>
 	</div>
 	<a class="ui item" href="javascript:;" onclick="$('#upload').modal('show');"><i class="upload icon"></i> Upload</a>
-	<div class="ui item"><div class="ui label">{{ item_rep.modified }}</div></div>
+	<div class="ui item"><div class="ui label">{{ item_rep.item.modified }}</div></div>
 	<a class="ui item" href="{{ item_rep.url }}?action=download"><i class="download icon"></i> Download</a>
 	<a class="ui item" href="{{ item_rep.url }}?action=delete" title="Delete folder and all its contents"><i class="delete icon"></i> Delete</a>
 	<div class="ui item" href="javascript:;" onclick="$('.notes').transition('slide left');"><div class="ui button"><i class="file text icon"></i> Notes</div></div>

@@ -144,7 +144,7 @@ class FileEditor(Editor):
     @classmethod
     def raw(cls, item, request, permissions):
         data = item.read_byte()
-        return HttpResponse(data, content_type=mimetypes.guess_type(item.absolute_path))
+        return HttpResponse(data, content_type=item.mime)
 
     @classmethod
     def download(cls, item, request, permissions):

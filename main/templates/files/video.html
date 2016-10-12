@@ -2,6 +2,6 @@
 
 {% block file_content %}
 <video controls class="responsive">
-	<source src="{{item_rep.url}}?action=raw" type="{{item_rep.mime}}"/>  
+	<source src="{{item_rep.url}}?action=raw" type="{{item_rep.item.mime}}"/>
 </video>
 {% endblock %}
