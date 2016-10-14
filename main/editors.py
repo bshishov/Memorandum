@@ -81,15 +81,18 @@ class Editor:
 
     @classmethod
     def share(cls, item, request, permissions):
-        user_name = request.POST.get('target')
+        user_name = request.POST.get('target', "")
+        sharing_type = request.POST.get('type', "1")
         rel_path = '/' + item.rel_path
         try:
             share_with = models.User.objects.get(username=user_name)
         except models.User.DoesNotExist:
             pass
         else:
-            sharing_note = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path, shared_with=share_with)
-            sharing_note.permissions = 1
+            sharing_note, create = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path,
+                                                                        shared_with=share_with,
+                                                                        defaults={'permissions': 0})
+            sharing_note.permissions = int(sharing_type)
             sharing_note.save()
         finally:
             redirect_username = item.parent.owner.username

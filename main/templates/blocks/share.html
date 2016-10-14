@@ -8,10 +8,12 @@
 			    </div>
           <div class="field">
             <label>Sharing type</label>
+             {% csrf_token %}
             <select class="ui dropdown" name="type">
-              {% csrf_token %}
-              <option value="read">Can read</option>
-              <option value="write">Can write</option>
+              <option value="1">Can view items</option>
+              <option value="3">Can upload/download items</option>
+              <option value="7">Can rename/remove items</option>
+              <option value="15">Can share items</option>
             </select>
           </div>
       </div>

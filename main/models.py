@@ -21,7 +21,7 @@ class HomeDirectory (models.Model):
 # need to store information about directory-shareing
 class Sharing (models.Model):
     # owner of shared dir
-    owner = models.OneToOneField(User, related_name="sharings")
+    owner = models.ForeignKey(User, related_name="sharings")
     # wich item is shared
     item = models.CharField(max_length=512)
     # with who it is shared
@@ -30,7 +30,7 @@ class Sharing (models.Model):
     permissions = models.IntegerField()
 
     def __str__(self):
-        return self.item + " is shared with: " + self.shared_with.username
+        return self.owner.username + " shared " + self.item + " with: " + self.shared_with.username
 
     # checks if the user is allowed to do smth with directory
     @classmethod
