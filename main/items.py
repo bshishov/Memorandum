@@ -1,7 +1,11 @@
 import os
+import time
 import shutil
 import tempfile
 from . import models
+import mimetypes
+
+mimetypes.init()
 
 
 def get_instance(user, relative_path):
@@ -40,6 +44,12 @@ class Item:
         self.is_deleted = False
         self.time_modified = os.path.getmtime(self.absolute_path)
 
+        mime_type = mimetypes.guess_type(self.name)[0]
+        if mime_type is None:
+            self.mime = 'application/octet-stream'
+        else:
+            self.mime = mime_type
+
     def __str__(self):
         return self.name
 
@@ -72,6 +82,14 @@ class Item:
             return True
         else:
             return False
+
+    @property
+    def created(self):
+        return time.ctime(os.path.getctime(self.absolute_path))
+
+    @property
+    def modified(self):
+        return time.ctime(os.path.getmtime(self.absolute_path))
 
     def rename(self, name):
         new_path = os.path.join(self.parent_path, name)

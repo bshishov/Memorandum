@@ -1,7 +1,8 @@
 {% extends 'item_layout.html' %}
 
 {% block item_controls %}
-	<div class="ui item"><div class="ui label">{{ item.modified }}</div> </div>
+	<div class="ui item"><div class="ui label">{{ item_rep.item.mime }}</div> </div>
+	<div class="ui item"><div class="ui label">{{ item_rep.item.modified }}</div> </div>
 	<a class="ui item" href="{{item_rep.url}}?action=raw"><i class="code icon"></i> Raw</a>
 	<a class="ui item" href="{{item_rep.url}}?action=download"><i class="download icon"></i> Download <div class="ui label">{{ item_rep.item.size|filesizeformat }}</div></a>
 	<a class="ui item" href="{{item_rep.url}}?action=remove" title="Delete this file">

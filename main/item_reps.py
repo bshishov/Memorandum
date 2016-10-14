@@ -1,13 +1,13 @@
 from django.urls import reverse
 from . import editors
-import mimetypes
+import os
 
 
 def get_representation(item):
     if os.path.isdir(item.absolute_path):
-        return item_reps.DirectoryRepresentation(item)
+        return DirectoryRepresentation(item)
     else:
-        return item_reps.FileRepresentation(item)
+        return FileRepresentation(item)
 
 
 class Representation:
@@ -21,7 +21,7 @@ class Representation:
         if self.editor is None:
             return editors.get_default_for(self.item).thumbnail
         else:
-            return editor.thumbnail
+            return self.editor.thumbnail
 
     @property
     def url(self):
@@ -41,12 +41,6 @@ class Representation:
 class FileRepresentation(Representation):
     def __init__(self, item):
         super(FileRepresentation, self).__init__(item)
-        mimetypes.init()
-        mime_type = mimetypes.guess_type(item.name)
-        if mime_type is None:
-            self.mime = 'application/octet-stream'
-        else:
-            self.mime = mime_type
 
 
 class DirectoryRepresentation(Representation):

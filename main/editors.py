@@ -6,11 +6,13 @@ import importlib
 import zlib
 import re
 import datetime
+import mimetypes
 from . import items
 from . import views
 from . import models
 from . import item_reps
 
+mimetypes.init()
 
 def get_editor(name):
     all_editors = get_all_editors()
@@ -31,6 +33,7 @@ def get_all_editors():
         'AudioEditor',
         'VideoEditor',
         'OnlyOfficeEditor',
+        'PdfEditor',
         'UniversalFileEditor'
     ]
     if hasattr(settings, 'EDITORS') and len(settings.EDITORS) > 0:
@@ -169,7 +172,7 @@ class FileEditor(Editor):
     @classmethod
     def raw(cls, item, request, permissions):
         data = item.read_byte()
-        return HttpResponse(data)
+        return HttpResponse(data, content_type=item.mime)
 
     @classmethod
     def download(cls, item, request, permissions):
@@ -343,3 +346,17 @@ class OnlyOfficeEditor(FileEditor):
     @classmethod
     def track(cls, item, request, permissions):
         pass
+
+
+class PdfEditor(FileEditor):
+    def __init__(self):
+        super(PdfEditor, self).__init__()
+        self.name = "pdf"
+        self.extensions = [".pdf"]
+        self.thumbnail = "blocks/thumbnails/file.html"
+
+    @classmethod
+    def show(cls, item, request, permissions):
+        item_rep = item_reps.FileRepresentation(item)
+        context = Context({'item_rep': item_rep})
+        return render(request, "files/pdf.html", context)
