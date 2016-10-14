@@ -1,4 +1,4 @@
-﻿<div class="ui small modal" id="share">
+<div class="ui small modal" id="share">
 	<div class="content">
 		<form class="ui form" action="?action=share" method="POST">
       <div class="two fields">
@@ -9,6 +9,7 @@
           <div class="field">
             <label>Sharing type</label>
             <select class="ui dropdown" name="type">
+              {% csrf_token %}
               <option value="read">Can read</option>
               <option value="write">Can write</option>
             </select>

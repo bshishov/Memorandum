@@ -30,7 +30,7 @@ class Sharing (models.Model):
     permissions = models.IntegerField()
 
     def __str__(self):
-        return self.directory + " is shared with: " + self.sharedWith.username
+        return self.item + " is shared with: " + self.shared_with.username
 
     # checks if the user is allowed to do smth with directory
     @classmethod
@@ -38,11 +38,10 @@ class Sharing (models.Model):
         if user == item.owner:
             return settings.PERMISSIONS.get('Chuck_Norris')
         sharing_notes = Sharing.objects.filter(owner=item.owner)
+        permissions = 0
         for sharing_note in sharing_notes:
-            beginning = "/" + item.owner.username + sharing_note.item
-            if item.urlPath.startswith(beginning) or sharing_note.item == "/":
-                permissions = sharing_note.rgts
+            beginning = sharing_note.item
+            if item.rel_path.startswith(beginning) or sharing_note.item == "/":
+                permissions = sharing_note.permissions
                 break
-            else:
-                permissions = 0
         return permissions

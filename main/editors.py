@@ -8,6 +8,7 @@ import re
 import datetime
 from . import items
 from . import views
+from . import models
 from . import item_reps
 
 
@@ -75,6 +76,23 @@ class Editor:
     def show(cls, item, request, permissions):
         return HttpResponse("Sup, i handled " + item.name)
 
+    @classmethod
+    def share(cls, item, request, permissions):
+        user_name = request.POST.get('target')
+        rel_path = '/' + item.rel_path
+        try:
+            share_with = models.User.objects.get(username=user_name)
+        except models.User.DoesNotExist:
+            pass
+        else:
+            sharing_note = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path, shared_with=share_with)
+            sharing_note.permissions = 1
+            sharing_note.save()
+        finally:
+            redirect_username = item.parent.owner.username
+            redirect_rel_path = item.parent.rel_path
+            return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+
 
 # editor for directories
 class DirectoryEditor(Editor):
@@ -118,6 +136,16 @@ class DirectoryEditor(Editor):
             new_rel_path = item.rel_path + "/" + uploaded_file.name
             new_item = items.FileItem(item.owner, new_rel_path)
             new_item.write_file(uploaded_file.chunks())
+            redirect_username = item.parent.owner.username
+            redirect_rel_path = item.parent.rel_path
+        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+
+    @classmethod
+    def create_new(cls, item, request, permissions):
+        if request.POST.get('name', None) is not None:
+            new_rel_path = item.rel_path + "/" + uploaded_file.name
+            new_item = items.FileItem(item.owner, new_rel_path)
+            new_item.init_file()
             redirect_username = item.parent.owner.username
             redirect_rel_path = item.parent.rel_path
         return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)

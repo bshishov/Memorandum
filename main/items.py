@@ -38,6 +38,7 @@ class Item:
         else:
             self.parent_rel_path = ""
         self.is_deleted = False
+        self.time_modified = os.path.getmtime(self.absolute_path)
 
     def __str__(self):
         return self.name
@@ -96,6 +97,10 @@ class FileItem(Item):
         f = open(self.absolute_path, 'wb+')
         for chunk in chunks:
             f.write(chunk)
+        f.close()
+
+    def init_file(self):
+        f = open(self.absolute_path, 'wb+')
         f.close()
 
 
