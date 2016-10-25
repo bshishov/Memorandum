@@ -11,8 +11,7 @@ mimetypes.init()
 def get_instance(user, relative_path):
     rel_path = relative_path.rstrip("/")
     rel_path = rel_path.lstrip("/")
-    home_dir = models.HomeDirectory.objects.get(uid=user).home_dir
-    absolute_path = os.path.join(home_dir, rel_path)
+    absolute_path = os.path.join(user.home_dir, rel_path)
     access_ok = os.access(absolute_path, os.F_OK | os.R_OK)
     if not access_ok:
         return None
@@ -27,8 +26,7 @@ class Item:
     def __init__(self, user, path):
         self.rel_path = path.rstrip("/")
         self.rel_path = self.rel_path.lstrip("/")
-        home_dir = models.HomeDirectory.objects.get(uid=user).home_dir
-        self.absolute_path = os.path.join(home_dir, self.rel_path)
+        self.absolute_path = os.path.join(user.home_dir, self.rel_path)
         self.owner = user
         self.extension = os.path.splitext(self.absolute_path)[1]
         self.parent_path = os.path.dirname(self.absolute_path)
@@ -128,17 +126,20 @@ class DirectoryItem(Item):
 
     @property
     def children(self):
-        child_items = []
         try:
             child_list = os.listdir(self.absolute_path)
         except PermissionError:
-            return child_items
+            return []
         else:
+            child_items = []
             for child in child_list:
-                child_url = self.rel_path + "/" + child
-                child_item = get_instance(self.owner, child_url)  # Item(self.owner, child_url)
-                if child_item is not None:
-                    child_items.append(child_item)
+                try:
+                    child_url = self.rel_path + "/" + child
+                    child_item = get_instance(self.owner, child_url)  # Item(self.owner, child_url)
+                    if child_item is not None:
+                        child_items.append(child_item)
+                except:
+                    pass
             return child_items
 
     def make_zip(self):

@@ -116,6 +116,8 @@ STATIC_URL = '/static/'
 #    'main.ab.AB',
 # ]
 
+AUTH_USER_MODEL = 'main.CustomUser'
+
 # permissions that describe access mode
 PERMISSIONS = {'nothing': 0,
                'show': 1,

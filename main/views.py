@@ -4,6 +4,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
+
+from main.models import CustomUser
 from . import models
 from . import items
 from . import editors
@@ -28,7 +30,7 @@ def auth(request):
         if user is None:
             return redirect(login_view)
         login(request, user)
-    return redirect(item_handler,  user_name=user.username, relative_path="")
+    return redirect(item_handler, user_id=user.id, relative_path="")
 
 
 def logout_view(request):
@@ -46,12 +48,12 @@ def access_denied(request):
 
 
 # main view function - handles the given item
-def item_handler(request, user_name, relative_path):
+def item_handler(request, user_id, relative_path):
     try:
         request_user = request.user
         if not request_user.is_authenticated:
             return redirect(login_view)
-        owner = User.objects.get(username=user_name)
+        owner = CustomUser.objects.get(id=user_id)
         # making current item from homedir and url params
         current_item = items.get_instance(owner, relative_path)
         if current_item is None:
