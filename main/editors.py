@@ -148,8 +148,9 @@ class DirectoryEditor(Editor):
 
     @classmethod
     def create_new(cls, item, request, permissions):
-        if request.POST.get('name', None) is not None:
-            new_rel_path = item.rel_path + "/" + uploaded_file.name
+        new_file_name = request.POST.get('name', None)
+        if new_file_name is not None:
+            new_rel_path = item.rel_path + "/" + new_file_name
             new_item = items.FileItem(item.owner, new_rel_path)
             new_item.init_file()
             redirect_username = item.parent.owner.username
