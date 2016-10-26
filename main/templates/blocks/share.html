@@ -1,23 +1,41 @@
 <div class="ui small modal" id="share">
 	<div class="content">
+        {% if item_rep.sharings %}
+            <h3 class="ui header">Shared with</h3>
+                <div class="ui middle aligned divided list">
+                {% for sharing in item_rep.sharings %}
+                    <div class="item">
+                        <div class="right floated content">
+                            <a class="circular ui icon button" href="?action=unshare&id={{sharing.id}}">
+                                <i class="icon delete"></i>
+                            </a>
+                        </div>
+                        <div class="content">
+                            {{ sharing.shared_with }} <div class="ui label">{{ sharing.permissions }}</div>
+                        </div>
+                    </div>
+                {% endfor %}
+                </div>
+            <div class="ui divider"></div>
+        {% endif %}
 		<form class="ui form" action="?action=share" method="POST">
-      <div class="two fields">
-          <div class="field">
-            <label>Share with</label>
-            <input type="text" name="target" placeholder="New name" value="" />
-			    </div>
-          <div class="field">
-            <label>Sharing type</label>
-             {% csrf_token %}
-            <select class="ui dropdown" name="type">
-              <option value="1">Can view items</option>
-              <option value="3">Can upload/download items</option>
-              <option value="7">Can rename/remove items</option>
-              <option value="15">Can share items</option>
-            </select>
-          </div>
-      </div>
-      <button class="ui primary button" type="submit">Share</button>
+            {% csrf_token %}
+            <div class="two fields">
+                <div class="field">
+                    <label>Share with</label>
+                    <input type="text" name="target" placeholder="Email" value="" />
+                </div>
+                <div class="field">
+                    <label>Sharing type</label>
+                    <select class="ui dropdown" name="type">
+                        <option value="1">Can view items</option>
+                        <option value="3">Can upload/download items</option>
+                        <option value="7">Can rename/remove items</option>
+                        <option value="15">Can share items</option>
+                    </select>
+                </div>
+            </div>
+            <button class="ui primary button" type="submit">Share</button>
 		</form>
 	</div>
 </div>
