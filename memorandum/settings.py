@@ -127,6 +127,7 @@ PERMISSIONS = {'nothing': 0,
                'rename': 7,
                'remove': 7,
                'share': 15,
+               'unshare': 15,
                'Chuck_Norris': 9999}
 
 # for OnlyOffice

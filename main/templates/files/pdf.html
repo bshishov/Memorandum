@@ -1,5 +1,5 @@
 {% extends 'file_layout.html' %}
 
 {% block file_content %}
-<embed src="{{item_rep.url}}?action=raw" width="100%" height="100%" type='application/pdf'>
+<embed src="{{item_rep.url}}?action=raw" width="100%" type='application/pdf' style="box-sizing: inherit; height: inherit; margin-bottom: -10px;">
 {% endblock %}

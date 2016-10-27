@@ -84,19 +84,34 @@ class Editor:
     def share(cls, item, request, permissions):
         user_email = request.POST.get('target', "")
         sharing_type = request.POST.get('type', "1")
-        rel_path = '/' + item.rel_path
-        try:
-            share_with = models.CustomUser.objects.get(email=user_email)
-        except models.User.DoesNotExist:
-            pass
-        else:
-            sharing_note, create = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path,
-                                                                        shared_with=share_with,
-                                                                        defaults={'permissions': 0})
-            sharing_note.permissions = int(sharing_type)
-            sharing_note.save()
-        finally:
-            return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
+        rel_path = item.rel_path
+
+        share_with = models.CustomUser.objects.get(email=user_email)
+        if share_with.id == request.user.id:
+            raise RuntimeError('Can not share to yourself')
+
+        sharing_note, create = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path,
+                                                                    shared_with=share_with,
+                                                                    defaults={'permissions': 0})
+        sharing_note.permissions = int(sharing_type)
+        sharing_note.save()
+
+        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.rel_path)
+
+    @classmethod
+    def unshare(cls, item, request, permissions):
+        sharing_id = request.GET.get('id', None)
+
+        if not sharing_id:
+            raise ValueError('Invalid sharing id')
+
+        sharing = models.Sharing.objects.get(id=sharing_id)
+
+        if sharing.owner != request.user:
+            raise PermissionError('Only owner can remove sharings')
+
+        sharing.delete()
+        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.rel_path)
 
 
 # editor for directories

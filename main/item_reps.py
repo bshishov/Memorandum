@@ -1,5 +1,6 @@
 from django.urls import reverse
 from . import editors
+from .models import Sharing
 import os
 
 
@@ -36,6 +37,12 @@ class Representation:
             parent_rep = Representation(parent)
             item_breadcrumbs.append(parent_rep)
         return item_breadcrumbs
+
+    @property
+    def sharings(self):
+        item_sharings = Sharing.objects.filter(owner=self.item.owner, item=self.item.rel_path)
+        print(self.item.rel_path)
+        return item_sharings
 
 
 class FileRepresentation(Representation):

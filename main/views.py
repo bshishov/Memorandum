@@ -70,26 +70,37 @@ def item_handler(request, user_id, relative_path):
             editor = editors.get_default_for(current_item)
         else:
             editor = editors.get_editor(editor_name)
-    except ObjectDoesNotExist:
-        context = Context({'error_code': 404,
-                           'error_message': "Not exists",
-                           'details': "User or home directory  does not exist"})
-        return render(request, "error.html", context)
-    except KeyError:
-        context = Context({'error_code': 404,
-                           'error_message': "Editor not found",
-                           'details': "Requested editor does not exist"})
-        return render(request, "error.html", context)
-    except LookupError:
-        context = Context({'error_code': 404,
-                           'error_message': "Wrong editor",
-                           'details': "Chosen editor can not handle this item"})
-        return render(request, "error.html", context)
-    except FileNotFoundError:
-        context = Context({'error_code': 404,
-                           'error_message': "Not found",
-                           'details': "Requested file was not found"})
-        return render(request, "error.html", context)
-    else:
+
         action = getattr(editor, chosen_action, editor.not_exists())
         return action(current_item, request, permission)
+    except ObjectDoesNotExist as error:
+        context = Context({'error_code': 404,
+                           'error_message': "Object doest not exists",
+                           'details': str(error)})
+        return render(request, "error.html", context)
+    except KeyError as error:
+        context = Context({'error_code': 404,
+                           'error_message': "Editor not found",
+                           'details': str(error)})
+        return render(request, "error.html", context)
+    except LookupError as error:
+        context = Context({'error_code': 404,
+                           'error_message': "Wrong editor",
+                           'details': str(error)})
+        return render(request, "error.html", context)
+    except FileNotFoundError as error:
+        context = Context({'error_code': 404,
+                           'error_message': "Not found",
+                           'details': str(error)})
+        return render(request, "error.html", context)
+    except PermissionError as error:
+        context = Context({'error_code': 403,
+                           'error_message': "Permission error",
+                           'details': str(error)})
+        return render(request, "error.html", context)
+    except Exception as error:
+        context = Context({'error_code': 500,
+                           'error_message': type(error).__name__,
+                           'details': error})
+        return render(request, "error.html", context)
+
