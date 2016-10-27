@@ -25,7 +25,7 @@ class Representation:
 
     @property
     def url(self):
-        full_url = reverse('item_handler', kwargs={'user_name': self.item.owner.username,
+        full_url = reverse('item_handler', kwargs={'user_id': self.item.owner.id,
                                                    'relative_path': self.item.rel_path})
         return full_url
 

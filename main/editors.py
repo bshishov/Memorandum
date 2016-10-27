@@ -14,6 +14,7 @@ from . import item_reps
 
 mimetypes.init()
 
+
 def get_editor(name):
     all_editors = get_all_editors()
     editor = UniversalFileEditor
@@ -81,11 +82,11 @@ class Editor:
 
     @classmethod
     def share(cls, item, request, permissions):
-        user_name = request.POST.get('target', "")
+        user_email = request.POST.get('target', "")
         sharing_type = request.POST.get('type', "1")
         rel_path = '/' + item.rel_path
         try:
-            share_with = models.User.objects.get(username=user_name)
+            share_with = models.CustomUser.objects.get(email=user_email)
         except models.User.DoesNotExist:
             pass
         else:
@@ -95,9 +96,7 @@ class Editor:
             sharing_note.permissions = int(sharing_type)
             sharing_note.save()
         finally:
-            redirect_username = item.parent.owner.username
-            redirect_rel_path = item.parent.rel_path
-            return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+            return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
 
 # editor for directories
@@ -142,9 +141,7 @@ class DirectoryEditor(Editor):
             new_rel_path = item.rel_path + "/" + uploaded_file.name
             new_item = items.FileItem(item.owner, new_rel_path)
             new_item.write_file(uploaded_file.chunks())
-            redirect_username = item.parent.owner.username
-            redirect_rel_path = item.parent.rel_path
-        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
     @classmethod
     def create_new(cls, item, request, permissions):
@@ -153,9 +150,7 @@ class DirectoryEditor(Editor):
             new_rel_path = item.rel_path + "/" + new_file_name
             new_item = items.FileItem(item.owner, new_rel_path)
             new_item.init_file()
-            redirect_username = item.parent.owner.username
-            redirect_rel_path = item.parent.rel_path
-        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
 
 # common editor for files
@@ -190,16 +185,12 @@ class FileEditor(Editor):
     def rename(cls, item, request, permissions):
         new_name = request.POST.get('name', item.name)
         item.rename(new_name)
-        redirect_username = item.parent.owner.username
-        redirect_rel_path = item.parent.rel_path
-        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
     @classmethod
     def remove(cls, item, request, permissions):
         item.delete()
-        redirect_username = item.parent.owner.username
-        redirect_rel_path = item.parent.rel_path
-        return redirect(views.item_handler, user_name=redirect_username, relative_path=redirect_rel_path)
+        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
 
 class UniversalFileEditor(FileEditor):
