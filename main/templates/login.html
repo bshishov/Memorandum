@@ -3,12 +3,12 @@
 {% block page_title %}Login{% endblock %}
 
 {% block page_content %}
-    <form action="./" class="ui large form" method="post">
+    <form class="ui large form" method="post">
       <div class="ui segment">
         <div class="field">
           <div class="ui left icon input">
             <i class="user icon"></i>
-            <input type="text" name="username" placeholder="Username">
+            <input type="text" name="email" placeholder="E-mail">
           </div>
         </div>
         <div class="field">
@@ -18,7 +18,7 @@
           </div>
         </div>
         {% csrf_token %}
-        <input type="submit" class="ui fluid large submit button" value="Login" />
+        <input type="submit" class="ui fluid large submit button" value="Log in" />
       </div>
       <div class="ui error message"></div>
     </form>

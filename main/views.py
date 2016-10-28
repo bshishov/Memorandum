@@ -13,24 +13,29 @@ from . import editors
 
 # shows login form
 def login_view(request):
-    user = request.user
-    if user.is_authenticated:
-        return redirect(item_handler, user_name=user.username, relative_path="")
-    else:
-        return render(request, 'login.html')
+    if request.method == 'GET':
+        user = request.user
+        if user.is_authenticated:
+            return redirect(item_handler, user_name=user.username, relative_path="")
+        else:
+            return render(request, 'login.html')
+    elif request.method == 'POST':
+        user = request.user
+        if not user.is_authenticated:
+            username = request.POST.get('email', "")
+            password = request.POST.get('password', "")
+            user = authenticate(username=username, password=password)
+            if user is None:
+                return redirect(login_view)
+            login(request, user)
+        return redirect(item_handler, user_id=user.id, relative_path="")
 
 
-# authenticates user
-def auth(request):
-    user = request.user
-    if not user.is_authenticated:
-        username = request.POST.get('username', "")
-        password = request.POST.get('password', "")
-        user = authenticate(username=username, password=password)
-        if user is None:
-            return redirect(login_view)
-        login(request, user)
-    return redirect(item_handler, user_id=user.id, relative_path="")
+def home(request):
+    """ index page just redirects if logged in """
+    if not request.user.is_authenticated:
+        return redirect(login_view)
+    return redirect(item_handler, user_id=request.user.id, relative_path="")
 
 
 def logout_view(request):
