@@ -30,22 +30,37 @@ $('.dropdown')
 
 {% block item_content %}
 <div class="ui container">
+	{% if child_dirs or child_files %}
 	<div class="ui basic segment">
 		<div class="thumbnails">
 			{% for child in child_dirs %}
 			<a class="thumbnail" href="{{ child.url }}">
-				{% include child.thumbnail %}
-				<div class="label">{{ child.name }}</div>
+				<div class="thumbnail-image">
+					{% include child.thumbnail %}
+				</div>
+				<div class="thumbnail-label">{{ child.name }}</div>
 			</a>
 			{% endfor %}
-      {% for child in child_files %}
+			{% for child in child_files %}
 			<a class="thumbnail" href="{{ child.url }}">
-				{% include child.thumbnail  with item_rep=child %}
-				<div class="label">{{ child.name }}</div>
+				<div class="thumbnail-image">
+					{% include child.thumbnail  with item_rep=child %}
+				</div>
+				<div class="thumbnail-label">{{ child.name }}</div>
 			</a>
 			{% endfor %}
 		</div>
 	</div>
+	{% else %}
+	<div class="ui center aligned basic segment padded">
+		<h3 class="ui header">This folder is empty</h3>
+		<div class="ui buttons">
+		  <a class="ui button" href="javascript:;" onclick="$('#create_new').modal('show');">New</a>
+		  <div class="or"></div>
+		  <a class="ui positive button" href="javascript:;" onclick="$('#upload').modal('show');">Upload</a>
+		</div>
+	</div>
+	{% endif %}
  
   <div class="ui small modal" id="upload">
 	  <div class="header">Upload file</div>

@@ -266,7 +266,7 @@ class ImageEditor(FileEditor):
         super(ImageEditor, self).__init__()
         self.name = "image"
         self.extensions = [".jpg", ".bmp", ".gif", ".png"]
-        self.thumbnail = "blocks/thumbnails/preview.html"
+        self.thumbnail = "blocks/thumbnails/image.html"
 
     @classmethod
     def preview(cls, item, request, permissions):
