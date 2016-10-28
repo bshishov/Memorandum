@@ -103,6 +103,8 @@ class Item:
     def rename(self, name):
         new_path = os.path.join(self.parent_path, name)
         os.rename(self.absolute_path, new_path)
+        self.absolute_path = new_path
+        self.rel_path = os.path.join(self.parent.rel_path, name)
         self.name = name
 
     def delete(self):

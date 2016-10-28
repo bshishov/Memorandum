@@ -83,6 +83,13 @@ class Editor:
         return HttpResponse("Sup, i handled " + item.name)
 
     @classmethod
+    def rename(cls, item, request, permissions):
+        new_name = request.POST.get('name', item.name)
+        if not item.is_root:
+            item.rename(new_name)
+        return redirect(views.item_handler, user_id=item.owner.id, relative_path=item.rel_path)
+
+    @classmethod
     def share(cls, item, request, permissions):
         user_email = request.POST.get('target', "")
         sharing_type = request.POST.get('type', "1")
@@ -203,12 +210,6 @@ class FileEditor(Editor):
         response['Content-Disposition'] = 'attachment; filename=' + item.name
         response['X-Sendfile'] = item.name
         return response
-
-    @classmethod
-    def rename(cls, item, request, permissions):
-        new_name = request.POST.get('name', item.name)
-        item.rename(new_name)
-        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
     @classmethod
     def remove(cls, item, request, permissions):
