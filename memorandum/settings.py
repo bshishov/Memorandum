@@ -120,6 +120,7 @@ AUTH_USER_MODEL = 'main.CustomUser'
 
 # permissions that describe access mode
 PERMISSIONS = {'nothing': 0,
+               'preview': 1,
                'show': 1,
                'raw': 1,
                'download': 3,

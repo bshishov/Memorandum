@@ -2,6 +2,8 @@ from django.shortcuts import render, redirect
 from django.template import Context
 from django.http import HttpResponse
 from django.conf import settings
+from PIL import Image
+import io
 import importlib
 import zlib
 import re
@@ -257,7 +259,18 @@ class ImageEditor(FileEditor):
         super(ImageEditor, self).__init__()
         self.name = "image"
         self.extensions = [".jpg", ".bmp", ".gif", ".png"]
-        self.thumbnail = "blocks/thumbnails/image.html"
+        self.thumbnail = "blocks/thumbnails/preview.html"
+
+    @classmethod
+    def preview(cls, item, request, permissions):
+        image = Image.open(item.absolute_path)
+        image.thumbnail((128, 128), Image.ANTIALIAS)
+
+        image_bytes = io.BytesIO()
+        ext = item.extension.lstrip(".")
+        image.save(image_bytes, format="PNG")
+
+        return HttpResponse(image_bytes.getvalue(), content_type=item.mime)
 
     @classmethod
     def show(cls, item, request, permissions):
