@@ -16,15 +16,15 @@ def login_view(request):
     if request.method == 'GET':
         user = request.user
         if user.is_authenticated:
-            return redirect(item_handler, user_name=user.username, relative_path="")
+            return redirect(item_handler, user_id=user.id, relative_path="")
         else:
             return render(request, 'login.html')
     elif request.method == 'POST':
         user = request.user
         if not user.is_authenticated:
-            username = request.POST.get('email', "")
+            email = request.POST.get('email', "")
             password = request.POST.get('password', "")
-            user = authenticate(username=username, password=password)
+            user = authenticate(username=email, password=password)
             if user is None:
                 return redirect(login_view)
             login(request, user)
