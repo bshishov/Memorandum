@@ -21,6 +21,16 @@ def get_instance(user, relative_path):
         return FileItem(user, relative_path)
 
 
+def get_instance_by_type(item_type, item_path, user, relative_path):
+    access_ok = os.access(item_path, os.F_OK | os.R_OK)
+    if not access_ok:
+        return None
+    elif item_type == "directory":
+        return DirectoryItem(user, relative_path)
+    else:
+        return FileItem(user, relative_path)
+
+
 # abstract item - file or directory
 class Item:
     def __init__(self, user, path):
@@ -40,7 +50,8 @@ class Item:
         else:
             self.parent_rel_path = ""
         self.is_deleted = False
-        self.time_modified = os.path.getmtime(self.absolute_path)
+        if os.path.exists(self.absolute_path):
+            self.time_modified = os.path.getmtime(self.absolute_path)
 
         mime_type = mimetypes.guess_type(self.name)[0]
         if mime_type is None:
@@ -115,8 +126,8 @@ class FileItem(Item):
             f.write(chunk)
         f.close()
 
-    def init_file(self):
-        f = open(self.absolute_path, 'wb+')
+    def create_empty(self):
+        f = open(self.absolute_path, 'w')
         f.close()
 
 
@@ -135,7 +146,7 @@ class DirectoryItem(Item):
             for child in child_list:
                 try:
                     child_url = self.rel_path + "/" + child
-                    child_item = get_instance(self.owner, child_url)  # Item(self.owner, child_url)
+                    child_item = get_instance(self.owner, child_url)
                     if child_item is not None:
                         child_items.append(child_item)
                 except:
@@ -149,3 +160,23 @@ class DirectoryItem(Item):
         data = open(shutil.make_archive(archive, 'zip', root_dir), 'rb').read()
         shutil.rmtree(temp_dir)
         return data
+
+    def has_file(self, name):
+        file_path = os.path.join(self.absolute_path, name)
+        return os.path.exists(file_path)
+
+    def make_path_to_new_item(self, name):
+        file_name = name
+        attempts = 1
+        ext_beginning = name.rfind(".")
+        if ext_beginning == -1:
+            ext_beginning = len(file_name)
+        while self.has_file(file_name):
+            file_name = name[:ext_beginning] + "(" + str(attempts) + ")" + name[ext_beginning:]
+            attempts += 1
+        path = os.path.join(self.rel_path, file_name)
+        return path
+
+    def create_empty(self):
+        if not os.path.exists(self.absolute_path):
+            os.makedirs(self.absolute_path)

@@ -155,19 +155,25 @@ class DirectoryEditor(Editor):
     def upload(cls, item, request, permissions):
         if request.method == 'POST' and 'file' in request.FILES:
             uploaded_file = request.FILES['file']
-            new_rel_path = item.rel_path + "/" + uploaded_file.name
+            new_rel_path = item.make_path_to_new_item(uploaded_file.name)
             new_item = items.FileItem(item.owner, new_rel_path)
             new_item.write_file(uploaded_file.chunks())
         return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
     @classmethod
     def create_new(cls, item, request, permissions):
-        new_file_name = request.POST.get('name', None)
-        if new_file_name is not None:
-            new_rel_path = item.rel_path + "/" + new_file_name
-            new_item = items.FileItem(item.owner, new_rel_path)
-            new_item.init_file()
-        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
+        name = request.POST.get('name', "")
+        item_type = request.POST.get('item_type', "file")
+        default_name = "new_file"
+        if item_type == "directory":
+            default_name = "new_folder"
+        if name == "":
+            name = default_name
+        new_rel_path = item.make_path_to_new_item(name)
+        new_item = items.get_instance_by_type(item_type, item.absolute_path, item.owner, new_rel_path)
+        if new_item is not None:
+            new_item.create_empty()
+        return redirect(views.item_handler, user_id=item.owner.id, relative_path=item.rel_path)
 
 
 # common editor for files
@@ -267,7 +273,6 @@ class ImageEditor(FileEditor):
         image.thumbnail((128, 128), Image.ANTIALIAS)
 
         image_bytes = io.BytesIO()
-        ext = item.extension.lstrip(".")
         image.save(image_bytes, format="PNG")
 
         return HttpResponse(image_bytes.getvalue(), content_type=item.mime)

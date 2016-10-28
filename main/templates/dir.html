@@ -4,7 +4,7 @@
 	<div class="ui item">
 		<div class="ui dropdown ">
 			<i class="add icon"></i>
-			<span class="text">New</span>
+			<span class="text" onclick="$('#create_new').modal('show');"> New </span>
 			<div class="menu">
 				{% for creator in creators %}
 					<div class="item" onclick="$('#creator-{{ creator.id }}').modal('show');">{{ creator.name }}</div>
@@ -52,6 +52,16 @@ $('.dropdown')
 	  <div class="content">
      <form class="ui form" action="{{ item_rep.url }}?action=upload" enctype="multipart/form-data" method="POST">
 		  {% include 'blocks/forms/upload.html' %}
+		  <button class="ui primary button" type="submit">Submit</button>
+		</form>
+	  </div>
+	</div>
+ 
+   <div class="ui small modal" id="create_new">
+	  <div class="header">Create item</div>
+	  <div class="content">
+     <form class="ui form" action="{{ item_rep.url }}?action=create_new" enctype="multipart/form-data" method="POST">
+		  {% include 'blocks/forms/create_new.html' %}
 		  <button class="ui primary button" type="submit">Submit</button>
 		</form>
 	  </div>

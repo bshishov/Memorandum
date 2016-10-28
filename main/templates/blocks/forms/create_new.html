@@ -1,0 +1,7 @@
+<div class="field">
+	<label>Choose file name and type</label>
+  {% csrf_token %}
+	<input type="text" name="name"/>
+  <input type="radio" name="item_type" value="file" checked> File <Br>
+  <input type="radio" name="item_type" value="directory"> Directory <Br>
+</div> 
