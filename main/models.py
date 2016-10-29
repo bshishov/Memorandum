@@ -5,7 +5,6 @@ from django.conf import settings
 
 # here will be defined models for home directories,
 # info about sharing directories and item-model
-
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, home_dir, password=None):
         """
@@ -98,7 +97,7 @@ class Sharing (models.Model):
     # owner of shared dir
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="sharings")
     # which item is shared
-    item = models.CharField(max_length=512)
+    item = models.CharField(max_length=512, blank=True, null=False)
     # with who it is shared
     shared_with = models.ForeignKey(settings.AUTH_USER_MODEL)
     # bitmask - what owner allows second person to do
@@ -106,17 +105,3 @@ class Sharing (models.Model):
 
     def __str__(self):
         return self.owner.username + " shared " + self.item + " with: " + self.shared_with.username
-
-    # checks if the user is allowed to do smth with directory
-    @classmethod
-    def get_permission(cls, user, item):
-        if user == item.owner:
-            return settings.PERMISSIONS.get('Chuck_Norris')
-        sharing_notes = Sharing.objects.filter(owner=item.owner)
-        permissions = 0
-        for sharing_note in sharing_notes:
-            beginning = sharing_note.item
-            if item.rel_path.startswith(beginning) or sharing_note.item == "/":
-                permissions = sharing_note.permissions
-                break
-        return permissions

@@ -13,6 +13,7 @@ from . import items
 from . import views
 from . import models
 from . import item_reps
+from .permissions import ALL_PERMISSIONS
 
 mimetypes.init()
 
@@ -79,21 +80,24 @@ class Editor:
         return HttpResponse("No such action")
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         return HttpResponse("Sup, i handled " + item.name)
 
     @classmethod
-    def rename(cls, item, request, permissions):
+    def rename(cls, item, request):
         new_name = request.POST.get('name', item.name)
         if not item.is_root:
             item.rename(new_name)
         return redirect(views.item_handler, user_id=item.owner.id, relative_path=item.rel_path)
 
     @classmethod
-    def share(cls, item, request, permissions):
+    def share(cls, item, request):
         user_email = request.POST.get('target', "")
-        sharing_type = request.POST.get('type', "1")
+        sharing_type = int(request.POST.get('type', "-1"))
         rel_path = item.rel_path
+
+        if sharing_type not in ALL_PERMISSIONS:
+            raise RuntimeError('Invalid sharing type')
 
         share_with = models.CustomUser.objects.get(email=user_email)
         if share_with.id == request.user.id:
@@ -102,13 +106,13 @@ class Editor:
         sharing_note, create = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path,
                                                                     shared_with=share_with,
                                                                     defaults={'permissions': 0})
-        sharing_note.permissions = int(sharing_type)
+        sharing_note.permissions = sharing_type
         sharing_note.save()
 
         return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.rel_path)
 
     @classmethod
-    def unshare(cls, item, request, permissions):
+    def unshare(cls, item, request):
         sharing_id = request.GET.get('id', None)
 
         if not sharing_id:
@@ -121,6 +125,11 @@ class Editor:
 
         sharing.delete()
         return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.rel_path)
+
+    @classmethod
+    def delete(cls, item, request):
+        item.delete()
+        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
 
 # editor for directories
@@ -138,7 +147,7 @@ class DirectoryEditor(Editor):
             return False
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.DirectoryRepresentation(item)
         child_list = item.children
         child_files = []
@@ -152,14 +161,14 @@ class DirectoryEditor(Editor):
         return render(request, "dir.html", context)
 
     @classmethod
-    def download(cls, item, request, permissions):
+    def download(cls, item, request):
         data = item.make_zip()
         response = HttpResponse(data, content_type='application/zip')
         response['Content-Disposition'] = 'attachment; filename="%s"' % (item.name + '.zip')
         return response
 
     @classmethod
-    def upload(cls, item, request, permissions):
+    def upload(cls, item, request):
         if request.method == 'POST' and 'file' in request.FILES:
             uploaded_file = request.FILES['file']
             new_rel_path = item.make_path_to_new_item(uploaded_file.name)
@@ -168,7 +177,7 @@ class DirectoryEditor(Editor):
         return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
     @classmethod
-    def create_new(cls, item, request, permissions):
+    def create_new(cls, item, request):
         name = request.POST.get('name', "")
         item_type = request.POST.get('item_type', "file")
         default_name = "new_file"
@@ -199,22 +208,17 @@ class FileEditor(Editor):
             return False
 
     @classmethod
-    def raw(cls, item, request, permissions):
+    def raw(cls, item, request):
         data = item.read_byte()
         return HttpResponse(data, content_type=item.mime)
 
     @classmethod
-    def download(cls, item, request, permissions):
+    def download(cls, item, request):
         content = item.read_byte()
         response = HttpResponse(content, content_type='application/force-download')
         response['Content-Disposition'] = 'attachment; filename=' + item.name
         response['X-Sendfile'] = item.name
         return response
-
-    @classmethod
-    def remove(cls, item, request, permissions):
-        item.delete()
-        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
 
 
 class UniversalFileEditor(FileEditor):
@@ -229,7 +233,7 @@ class UniversalFileEditor(FileEditor):
             return False
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/default.html", context)
@@ -242,7 +246,7 @@ class CodeEditor(FileEditor):
         self.extensions = [".txt", ".hex", ".bin", ".ini", ""]
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/code.html", context)
@@ -255,7 +259,7 @@ class MarkdownEditor(FileEditor):
         self.extensions = [".markdown", ".md"]
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/md.html", context)
@@ -269,7 +273,7 @@ class ImageEditor(FileEditor):
         self.thumbnail = "blocks/thumbnails/image.html"
 
     @classmethod
-    def preview(cls, item, request, permissions):
+    def preview(cls, item, request):
         image = Image.open(item.absolute_path)
         image.thumbnail((128, 128), Image.ANTIALIAS)
 
@@ -279,7 +283,7 @@ class ImageEditor(FileEditor):
         return HttpResponse(image_bytes.getvalue(), content_type=item.mime)
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/image.html", context)
@@ -293,7 +297,7 @@ class AudioEditor(FileEditor):
         self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/audio.html", context)
@@ -307,7 +311,7 @@ class VideoEditor(FileEditor):
         self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/video.html", context)
@@ -321,7 +325,7 @@ class OnlyOfficeEditor(FileEditor):
         self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         now = datetime.datetime.now()
         curr_date = str(now.day) + "." + str(now.month) + "." + str(now.year)
         api_src = settings.ONLYOFFICE_SERV_API_URL
@@ -385,7 +389,7 @@ class PdfEditor(FileEditor):
         self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
-    def show(cls, item, request, permissions):
+    def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/pdf.html", context)

@@ -9,6 +9,7 @@ from main.models import CustomUser
 from . import models
 from . import items
 from . import editors
+from . import permissions
 
 
 # shows login form
@@ -63,12 +64,13 @@ def item_handler(request, user_id, relative_path):
         current_item = items.get_instance(owner, relative_path)
         if current_item is None:
             return redirect(access_denied)
-        # check if request_user can access needed item
-        permission = models.Sharing.get_permission(request_user, current_item)
+
         # getting the needed action or 'show' by default
         chosen_action = request.GET.get('action', 'show')
-        if not permission & settings.PERMISSIONS.get(chosen_action):
+
+        if not permissions.has_permission(request_user, current_item, chosen_action):
             return redirect(access_denied)
+
         # getting the needed editor or searching for default editor
         editor_name = request.GET.get('editor', None)
         if editor_name is None:
@@ -77,7 +79,7 @@ def item_handler(request, user_id, relative_path):
             editor = editors.get_editor(editor_name)
 
         action = getattr(editor, chosen_action, editor.not_exists())
-        return action(current_item, request, permission)
+        return action(current_item, request)
     except ObjectDoesNotExist as error:
         context = Context({'error_code': 404,
                            'error_message': "Object doest not exists",
@@ -100,7 +102,7 @@ def item_handler(request, user_id, relative_path):
         return render(request, "error.html", context)
     except PermissionError as error:
         context = Context({'error_code': 403,
-                           'error_message': "Permission error",
+                           'error_message': "OS Permission error",
                            'details': str(error)})
         return render(request, "error.html", context)
     except Exception as error:

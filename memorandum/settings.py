@@ -118,20 +118,6 @@ STATIC_URL = '/static/'
 
 AUTH_USER_MODEL = 'main.CustomUser'
 
-# permissions that describe access mode
-PERMISSIONS = {'nothing': 0,
-               'preview': 1,
-               'show': 1,
-               'raw': 1,
-               'download': 3,
-               'upload': 3,
-               'create_new': 3,
-               'rename': 7,
-               'remove': 7,
-               'share': 15,
-               'unshare': 15,
-               'Chuck_Norris': 9999}
-
 # for OnlyOffice
 ONLYOFFICE_SERV_API_URL = "https://doc.onlyoffice.com/web-apps/apps/api/documents/api.js"
 

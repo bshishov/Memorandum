@@ -41,7 +41,6 @@ class Representation:
     @property
     def sharings(self):
         item_sharings = Sharing.objects.filter(owner=self.item.owner, item=self.item.rel_path)
-        print(self.item.rel_path)
         return item_sharings
 
 

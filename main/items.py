@@ -108,7 +108,10 @@ class Item:
         self.name = name
 
     def delete(self):
-        os.remove(self.absolute_path)
+        if self.is_dir:
+            shutil.rmtree(self.absolute_path)
+        else:
+            os.remove(self.absolute_path)
         self.is_deleted = True
 
 
