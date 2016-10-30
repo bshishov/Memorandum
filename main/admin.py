@@ -3,3 +3,4 @@ from .models import *
 
 admin.site.register(CustomUser)
 admin.site.register(Sharing)
+admin.site.register(SharedLink)

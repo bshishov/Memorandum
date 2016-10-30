@@ -1,4 +1,4 @@
-from .models import Sharing
+from .models import Sharing, SharedLink
 
 READ = 0
 WRITE = 1
@@ -26,7 +26,7 @@ ALL_PERMISSIONS = PERMISSION_LEVELS.keys()
 
 
 def has_permission(user, item, action):
-    if not user:
+    if not user or not user.is_authenticated:
         return guest_has_permission(item, action)
 
     if user == item.owner:
@@ -73,4 +73,5 @@ def get_nearest_sharing(user, item):
 
 
 def guest_has_permission(item, action):
-    return False
+    raise NotImplementedError('Guest permission check is not implemented yet')
+
