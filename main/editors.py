@@ -3,7 +3,7 @@ from django.template import Context
 from django.http import HttpResponse
 from django.conf import settings
 from PIL import Image
-import io
+#import io
 import importlib
 import zlib
 import re
@@ -274,11 +274,13 @@ class ImageEditor(FileEditor):
 
     @classmethod
     def preview(cls, item, request):
+        preview_path = settings.MEDIA_ROOT + item.rel_path
+        preview_item =
         image = Image.open(item.absolute_path)
         image.thumbnail((128, 128), Image.ANTIALIAS)
 
-        image_bytes = io.BytesIO()
-        image.save(image_bytes, format="PNG")
+        #image_bytes = io.BytesIO()
+        #image.save(image_bytes, format="PNG")
 
         return HttpResponse(image_bytes.getvalue(), content_type=item.mime)
 
