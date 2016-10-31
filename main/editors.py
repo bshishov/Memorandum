@@ -3,7 +3,6 @@ from django.template import Context
 from django.http import HttpResponse
 from django.conf import settings
 from PIL import Image
-#import io
 import importlib
 import zlib
 import re
