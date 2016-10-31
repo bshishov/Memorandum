@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.conf import settings
+from django.urls import reverse
 
 
 # here will be defined models for home directories,
@@ -97,7 +98,7 @@ class Sharing (models.Model):
     # owner of shared dir
     owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="sharings")
     # which item is shared
-    item = models.CharField(max_length=512, blank=True, null=False)
+    item = models.CharField(max_length=1024, blank=True, null=False)
     # with who it is shared
     shared_with = models.ForeignKey(settings.AUTH_USER_MODEL)
     # bitmask - what owner allows second person to do
@@ -105,3 +106,17 @@ class Sharing (models.Model):
 
     def __str__(self):
         return self.owner.username + " shared " + self.item + " with: " + self.shared_with.username
+
+
+class SharedLink(models.Model):
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="shared_links")
+    item = models.CharField(max_length=1024, blank=True, null=False)
+    link_id = models.CharField(max_length=256, blank=False, null=False, unique=True)
+    permissions = models.IntegerField()
+
+    def __str__(self):
+        return self.owner.username + " shared " + self.item
+
+    @property
+    def url(self):
+        return reverse('link_handler', kwargs={'link_id': self.link_id, 'relative_path': ''})

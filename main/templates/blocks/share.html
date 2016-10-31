@@ -15,6 +15,18 @@
                         </div>
                     </div>
                 {% endfor %}
+                {% for shared_link in item_rep.shared_links %}
+                <div class="item">
+                    <div class="right floated content">
+                        <a class="circular ui icon button" href="?action=unshare&id={{shared_link.id}}&link=1">
+                            <i class="icon delete"></i>
+                        </a>
+                    </div>
+                    <div class="content">
+                        <a href="{{ shared_link.url }}">{{ shared_link.link_id }}</a> <div class="ui label">{{ shared_link.permissions }}</div>
+                    </div>
+                </div>
+                {% endfor %}
                 </div>
             <div class="ui divider"></div>
         {% endif %}
@@ -26,8 +38,8 @@
                     <input type="text" name="target" placeholder="Email" value="" />
                 </div>
                 <div class="field">
-                    <label>Sharing type</label>
-                    <select class="ui dropdown" name="type">
+                    <label>Permissions</label>
+                    <select class="ui dropdown" name="permissions">
                         <option value="0">Can read</option>
                         <option value="1">Can write</option>
                         <option value="2">Admin</option>

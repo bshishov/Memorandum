@@ -33,10 +33,13 @@ def get_instance_by_type(item_type, item_path, user, relative_path):
 
 # abstract item - file or directory
 class Item:
-    def __init__(self, user, path):
+    def __init__(self, user, path, base_path=None):
         self.rel_path = path.rstrip("/")
         self.rel_path = self.rel_path.lstrip("/")
-        self.absolute_path = os.path.join(user.home_dir, self.rel_path)
+        if base_path is None:
+            self.absolute_path = os.path.join(user.home_dir, self.rel_path)
+        else:
+            self.absolute_path = os.path.join(base_path, self.rel_path)
         self.owner = user
         self.extension = os.path.splitext(self.absolute_path)[1]
         self.parent_path = os.path.dirname(self.absolute_path)
@@ -61,6 +64,10 @@ class Item:
 
     def __str__(self):
         return self.name
+
+    @property
+    def exists(self):
+        return os.path.exists(self.absolute_path)
 
     @property
     def parent(self):
@@ -100,6 +107,10 @@ class Item:
     def modified(self):
         return time.ctime(os.path.getmtime(self.absolute_path))
 
+    @property
+    def modified_time(self):
+        return os.path.getmtime(self.absolute_path)
+
     def rename(self, name):
         new_path = os.path.join(self.parent_path, name)
         os.rename(self.absolute_path, new_path)
@@ -117,8 +128,8 @@ class Item:
 
 
 class FileItem(Item):
-    def __init__(self, user, path):
-        super(FileItem, self).__init__(user, path)
+    def __init__(self, user, path, base_path=None):
+        super(FileItem, self).__init__(user, path, base_path)
 
     def read_byte(self):
         f = open(self.absolute_path, 'rb')
@@ -138,8 +149,8 @@ class FileItem(Item):
 
 
 class DirectoryItem(Item):
-    def __init__(self, user, path):
-        super(DirectoryItem, self).__init__(user, path)
+    def __init__(self, user, path, base_path=None):
+        super(DirectoryItem, self).__init__(user, path, base_path)
 
     @property
     def children(self):

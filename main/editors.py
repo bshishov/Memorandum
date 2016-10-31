@@ -274,15 +274,17 @@ class ImageEditor(FileEditor):
 
     @classmethod
     def preview(cls, item, request):
-        preview_path = settings.MEDIA_ROOT + item.rel_path
-        preview_item =
+        media_directory_item = items.DirectoryItem(item.owner, item.parent.rel_path, settings.MEDIA_ROOT)
+        if not media_directory_item.exists and not media_directory_item.is_dir:
+            media_directory_item.create_empty()
+        preview_item = items.FileItem(item.owner, item.rel_path, settings.MEDIA_ROOT)
+        if preview_item.exists and preview_item.modified_time >= item.modified_time:
+            return ImageEditor.raw(preview_item, "")
+
         image = Image.open(item.absolute_path)
         image.thumbnail((128, 128), Image.ANTIALIAS)
-
-        #image_bytes = io.BytesIO()
-        #image.save(image_bytes, format="PNG")
-
-        return HttpResponse(image_bytes.getvalue(), content_type=item.mime)
+        image.save(preview_item.absolute_path, format="PNG")
+        return ImageEditor.raw(preview_item, "")
 
     @classmethod
     def show(cls, item, request):

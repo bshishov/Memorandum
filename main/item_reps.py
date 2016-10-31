@@ -1,6 +1,6 @@
 from django.urls import reverse
 from . import editors
-from .models import Sharing
+from .models import Sharing, SharedLink
 import os
 
 
@@ -42,6 +42,11 @@ class Representation:
     def sharings(self):
         item_sharings = Sharing.objects.filter(owner=self.item.owner, item=self.item.rel_path)
         return item_sharings
+
+    @property
+    def shared_links(self):
+        links = SharedLink.objects.filter(owner=self.item.owner, item=self.item.rel_path)
+        return links
 
 
 class FileRepresentation(Representation):
