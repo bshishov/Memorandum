@@ -270,6 +270,7 @@ class ImageEditor(FileEditor):
     THUMBS_FOLDER = 'thumbs'
     THUMB_SIZE = (128, 128)
     THUMB_FORMAT = 'PNG'
+    THUMBS_CACHE_SECONDS = 604800
 
     def __init__(self):
         super(ImageEditor, self).__init__()
@@ -293,7 +294,9 @@ class ImageEditor(FileEditor):
             image.thumbnail(ImageEditor.THUMB_SIZE, Image.ANTIALIAS)
             image.save(preview_item.absolute_path, format=ImageEditor.THUMB_FORMAT)
 
-        return ImageEditor.raw(preview_item, request)
+        response = ImageEditor.raw(preview_item, request)
+        response['Cache-Control'] = 'public, max-age:{}'.format(ImageEditor.THUMBS_CACHE_SECONDS)
+        return response
 
     @classmethod
     def show(cls, item, request):
