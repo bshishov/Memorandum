@@ -3,11 +3,16 @@ from django.template import Context
 from django.http import HttpResponse
 from django.conf import settings
 from PIL import Image
+<<<<<<< HEAD
+=======
+# import io
+>>>>>>> 104f5b5247e70e6bbbdfec6c1ed5bdab496e26ef
 import importlib
 import zlib
 import re
 import datetime
 import mimetypes
+import os.path
 from . import items
 from . import views
 from . import models
@@ -156,7 +161,7 @@ class DirectoryEditor(Editor):
                 child_dirs.append(item_reps.DirectoryRepresentation(child))
             else:
                 child_files.append(item_reps.FileRepresentation(child))
-        context = Context({'item_rep': item_rep, 'child_dirs': child_dirs, 'child_files': child_files, })
+        context = Context({'item_rep': item_rep, 'child_dirs': child_dirs, 'child_files': child_files,})
         return render(request, "dir.html", context)
 
     @classmethod
@@ -265,6 +270,11 @@ class MarkdownEditor(FileEditor):
 
 
 class ImageEditor(FileEditor):
+    THUMBS_FOLDER = 'thumbs'
+    THUMB_SIZE = (128, 128)
+    THUMB_FORMAT = 'PNG'
+    THUMBS_CACHE_SECONDS = 604800
+
     def __init__(self):
         super(ImageEditor, self).__init__()
         self.name = "image"
@@ -273,17 +283,23 @@ class ImageEditor(FileEditor):
 
     @classmethod
     def preview(cls, item, request):
-        media_directory_item = items.DirectoryItem(item.owner, item.parent.rel_path, settings.MEDIA_ROOT)
+        media_directory_item = items.DirectoryItem(item.owner, item.parent.rel_path,
+                                                   os.path.join(settings.MEDIA_ROOT,
+                                                                ImageEditor.THUMBS_FOLDER,
+                                                                str(item.owner.id)))
         if not media_directory_item.exists and not media_directory_item.is_dir:
             media_directory_item.create_empty()
-        preview_item = items.FileItem(item.owner, item.rel_path, settings.MEDIA_ROOT)
-        if preview_item.exists and preview_item.modified_time >= item.modified_time:
-            return ImageEditor.raw(preview_item, "")
 
-        image = Image.open(item.absolute_path)
-        image.thumbnail((128, 128), Image.ANTIALIAS)
-        image.save(preview_item.absolute_path, format="PNG")
-        return ImageEditor.raw(preview_item, "")
+        preview_item = items.FileItem(item.owner, item.name, media_directory_item.absolute_path)
+
+        if not preview_item.exists or preview_item.modified_time < item.modified_time:
+            image = Image.open(item.absolute_path)
+            image.thumbnail(ImageEditor.THUMB_SIZE, Image.ANTIALIAS)
+            image.save(preview_item.absolute_path, format=ImageEditor.THUMB_FORMAT)
+
+        response = ImageEditor.raw(preview_item, request)
+        response['Cache-Control'] = 'public, max-age:{}'.format(ImageEditor.THUMBS_CACHE_SECONDS)
+        return response
 
     @classmethod
     def show(cls, item, request):

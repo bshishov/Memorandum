@@ -5,7 +5,6 @@ from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
 from django.conf import settings
 
-from main.models import CustomUser, SharedLink
 from . import models
 from . import items
 from . import editors
@@ -58,14 +57,14 @@ def item_handler(request, user_id, relative_path):
     if not request.user.is_authenticated:
         return redirect(login_view)
 
-    owner = CustomUser.objects.get(id=user_id)
+    owner = models.CustomUser.objects.get(id=user_id)
     current_item = items.get_instance(owner, relative_path)
 
     return __item_handler(request, current_item, request.user)
 
 
 def link_handler(request, link_id, relative_path):
-    link = SharedLink.objects.get(link_id=link_id)
+    link = models.SharedLink.objects.get(link_id=link_id)
     if not link:
         return redirect(login_view)
 
