@@ -1,4 +1,5 @@
 from .models import Sharing, SharedLink
+from . import items
 
 READ = 0
 WRITE = 1
@@ -37,20 +38,7 @@ def has_permission(user, item, action):
     if not sharing:
         return False
 
-    if sharing.permissions not in ALL_PERMISSIONS:
-        raise RuntimeError('Unknown sharing permission')
-        return False
-
-    permission_level = PERMISSION_LEVELS[sharing.permissions]
-
-    if len(sharing.item) < len(item.rel_path):
-        if action in permission_level[__CHILD_KEY]:
-            return True
-    else:
-        if action in permission_level[__ITEM_KEY]:
-            return True
-
-    return False
+    return __is_permitted(item.rel_path, sharing.permissions, action)
 
 
 def get_nearest_sharing(user, item):
@@ -73,5 +61,24 @@ def get_nearest_sharing(user, item):
 
 
 def guest_has_permission(item, action):
-    raise NotImplementedError('Guest permission check is not implemented yet')
+    # guest can access only by shared link
+    if not isinstance(item.path_factory, items.SharedLinkPathFactory):
+        return False
 
+    return __is_permitted(item.rel_path, item.path_factory.link.permissions, action)
+
+
+def __is_permitted(relative_path, permission, action):
+    if permission not in ALL_PERMISSIONS:
+        raise RuntimeError('Unknown permission')
+
+    permission_level = PERMISSION_LEVELS[permission]
+
+    if relative_path not in ('', '/'):
+        if action in permission_level[__CHILD_KEY]:
+            return True
+    else:
+        if action in permission_level[__ITEM_KEY]:
+            return True
+
+    return False

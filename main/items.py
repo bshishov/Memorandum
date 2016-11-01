@@ -4,43 +4,180 @@ import shutil
 import tempfile
 from . import models
 import mimetypes
+from django.urls import reverse
 
 mimetypes.init()
 
 
-def get_instance(user, relative_path):
-    rel_path = relative_path.rstrip("/")
-    rel_path = rel_path.lstrip("/")
-    absolute_path = os.path.join(user.home_dir, rel_path)
-    access_ok = os.access(absolute_path, os.F_OK | os.R_OK)
-    if not access_ok:
-        return None
-    elif os.path.isdir(absolute_path):
-        return DirectoryItem(user, relative_path)
-    else:
-        return FileItem(user, relative_path)
+class AbstractPathFactory(object):
+    def absolute_path(self, relative_path):
+        raise NotImplementedError
+
+    def get_item(self, relative_path):
+        raise NotImplementedError
+
+    def new_file(self, relative_path):
+        raise NotImplementedError
+
+    def new_directory(self, relative_path):
+        raise NotImplementedError
+
+    def get_or_create_directory(self, relative_path):
+        dir_item = self.get_item(relative_path)
+        if dir_item is not None:
+            return dir_item
+        return self.new_directory(relative_path)
+
+    def get_or_create_file(self, relative_path):
+        file_item = self.get_item(relative_path)
+        if file_item is not None:
+            return file_item
+        return self.new_file(relative_path)
+
+    def get_url(self, relative_path):
+        raise NotImplementedError
+
+    def _get_item(self, user, relative_path):
+        relative_path = self._clear_path(relative_path)
+
+        absolute_path = self.absolute_path(relative_path)
+        if not os.access(absolute_path, os.F_OK | os.R_OK):
+                return None
+        elif os.path.isdir(absolute_path):
+            return DirectoryItem(self, user, relative_path)
+        else:
+            return FileItem(self, user, relative_path)
+
+    def _new_file(self, user, relative_path):
+        return FileItem(self, user, self._clear_path(relative_path))
+
+    def _new_directory(self, user, relative_path):
+        return DirectoryItem(self, user, self._clear_path(relative_path))
+
+    def _clear_path(self, value):
+        """
+        :type value: str
+        """
+        return value.strip().strip('/')
 
 
-def get_instance_by_type(item_type, item_path, user, relative_path):
-    access_ok = os.access(item_path, os.F_OK | os.R_OK)
-    if not access_ok:
-        return None
-    elif item_type == "directory":
-        return DirectoryItem(user, relative_path)
-    else:
-        return FileItem(user, relative_path)
+class PlainPathFactory(AbstractPathFactory):
+    def __init__(self, base_dir):
+        """
+        :type base_dir: str
+        """
+        super(PlainPathFactory, self).__init__()
+        self.__base_dir = base_dir
+
+    def absolute_path(self, relative_path):
+        return os.path.join(self.__base_dir, relative_path)
+
+    def get_item(self, relative_path):
+        return AbstractPathFactory._get_item(self, None, relative_path)
+
+    def new_file(self, relative_path):
+        return AbstractPathFactory._new_file(self, None, relative_path)
+
+    def new_directory(self, relative_path):
+        return AbstractPathFactory._new_directory(self, None, relative_path)
+
+    def get_url(self, relative_path):
+        raise PermissionError
+
+
+class UserPathFactory(AbstractPathFactory):
+    def __init__(self, owner):
+        """
+        :type owner: models.CustomUser
+        """
+        super(UserPathFactory, self).__init__()
+        self.__owner = owner
+
+    def absolute_path(self, relative_path):
+        return os.path.join(self.__owner.home_dir, relative_path)
+
+    def get_item(self, relative_path):
+        return AbstractPathFactory._get_item(self, self.__owner, relative_path)
+
+    def new_file(self, relative_path):
+        return AbstractPathFactory._new_file(self, self.__owner, relative_path)
+
+    def new_directory(self, relative_path):
+        return AbstractPathFactory._new_directory(self, self.__owner, relative_path)
+
+    def get_url(self, relative_path):
+        return reverse('item_handler', kwargs={'user_id': self.__owner.id,
+                                               'relative_path': relative_path})
+
+
+class SharedLinkPathFactory(AbstractPathFactory):
+    def __init__(self, shared_link):
+        """
+        :type shared_link: models.SharedLink
+        """
+        super(SharedLinkPathFactory, self).__init__()
+        assert(isinstance(shared_link, models.SharedLink))
+        self.__link = shared_link
+
+    def absolute_path(self, relative_path):
+        return os.path.join(self.__link.owner.home_dir, self.__link.item, relative_path)
+
+    def get_item(self, relative_path):
+        return AbstractPathFactory._get_item(self, self.__link.owner, relative_path)
+
+    def new_file(self, relative_path):
+        return AbstractPathFactory._new_file(self, self.__link.owner, relative_path)
+
+    def new_directory(self, relative_path):
+        return AbstractPathFactory._new_directory(self, self.__link.owner, relative_path)
+
+    def get_url(self, relative_path):
+        return reverse('link_handler', kwargs={'link_id': self.__link.link_id,
+                                               'relative_path': relative_path})
+
+    @property
+    def link(self):
+        return self.__link
+
+
+class SharedItemPathFactory(AbstractPathFactory):
+    def __init__(self, sharing):
+        """
+        :type sharing: models.Sharing
+        """
+        super(SharedItemPathFactory, self).__init__()
+        assert(isinstance(sharing, models.Sharing))
+        self.__sharing = sharing
+
+    def absolute_path(self, relative_path):
+        return os.path.join(self.__sharing.owner, self.__sharing.item, relative_path)
+
+    def get_item(self, relative_path):
+        return AbstractPathFactory._get_item(self, self.__sharing.owner, relative_path)
+
+    def new_file(self, relative_path):
+        return AbstractPathFactory._new_file(self, self.__sharing.owner, relative_path)
+
+    def new_directory(self, relative_path):
+        return AbstractPathFactory._new_directory(self, self.__sharing.owner, relative_path)
+
+    def get_url(self, relative_path):
+        return reverse('item_handler', kwargs={'user_id': self.__sharing.owner.id,
+                                               'relative_path': relative_path})
 
 
 # abstract item - file or directory
 class Item:
-    def __init__(self, user, path, base_path=None):
-        self.rel_path = path.rstrip("/")
-        self.rel_path = self.rel_path.lstrip("/")
-        if base_path is None:
-            self.absolute_path = os.path.join(user.home_dir, self.rel_path)
-        else:
-            self.absolute_path = os.path.join(base_path, self.rel_path)
-        self.owner = user
+    def __init__(self, path_factory, owner, relative_path):
+        """
+        :type path_factory: AbstractPathFactory
+        :type owner: CustomUser
+        :type relative_path: str
+        """
+        self.path_factory = path_factory
+        self.rel_path = relative_path
+        self.absolute_path = self.path_factory.absolute_path(relative_path)
+        self.owner = owner
         self.extension = os.path.splitext(self.absolute_path)[1]
         self.parent_path = os.path.dirname(self.absolute_path)
         self.name = os.path.basename(self.absolute_path)
@@ -71,8 +208,7 @@ class Item:
 
     @property
     def parent(self):
-        parent_item = get_instance(self.owner, self.parent_rel_path)
-        return parent_item
+        return self.path_factory.get_item(self.parent_rel_path)
 
     @property
     def size(self):
@@ -94,10 +230,7 @@ class Item:
 
     @property
     def is_root(self):
-        if self.rel_path == "" or self.rel_path == "/":
-            return True
-        else:
-            return False
+        return self.rel_path == "" or self.rel_path == "/"
 
     @property
     def created(self):
@@ -128,8 +261,8 @@ class Item:
 
 
 class FileItem(Item):
-    def __init__(self, user, path, base_path=None):
-        super(FileItem, self).__init__(user, path, base_path)
+    def __init__(self, factory, user, path):
+        super(FileItem, self).__init__(factory, user, path)
 
     def read_byte(self):
         f = open(self.absolute_path, 'rb')
@@ -149,8 +282,8 @@ class FileItem(Item):
 
 
 class DirectoryItem(Item):
-    def __init__(self, user, path, base_path=None):
-        super(DirectoryItem, self).__init__(user, path, base_path)
+    def __init__(self, factory, user, path):
+        super(DirectoryItem, self).__init__(factory, user, path)
 
     @property
     def children(self):
@@ -162,8 +295,7 @@ class DirectoryItem(Item):
             child_items = []
             for child in child_list:
                 try:
-                    child_url = self.rel_path + "/" + child
-                    child_item = get_instance(self.owner, child_url)
+                    child_item = self.path_factory.get_item(self.rel_path + "/" + child)
                     if child_item is not None:
                         child_items.append(child_item)
                 except:
@@ -193,6 +325,12 @@ class DirectoryItem(Item):
             attempts += 1
         path = os.path.join(self.rel_path, file_name)
         return path
+
+    def create_child_file(self, name):
+        return self.path_factory.new_file(self.make_path_to_new_item(name))
+
+    def create_child_directory(self, name):
+        return self.path_factory.new_directory(self.make_path_to_new_item(name))
 
     def create_empty(self):
         if not os.path.exists(self.absolute_path):
