@@ -94,10 +94,10 @@ class Editor:
     @classmethod
     def share(cls, item, request):
         user_email = request.POST.get('target', "")
-        sharing_type = int(request.POST.get('type', "-1"))
+        permissions = int(request.POST.get('permissions', "-1"))
         rel_path = item.rel_path
 
-        if sharing_type not in ALL_PERMISSIONS:
+        if permissions not in ALL_PERMISSIONS:
             raise RuntimeError('Invalid sharing type')
 
         share_with = models.CustomUser.objects.get(email=user_email)
@@ -106,8 +106,8 @@ class Editor:
 
         sharing_note, create = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path,
                                                                     shared_with=share_with,
+                                                                    permissions=permissions,
                                                                     defaults={'permissions': 0})
-        sharing_note.permissions = sharing_type
         sharing_note.save()
 
         return redirect(item.path_factory.get_url(item.rel_path))
