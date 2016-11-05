@@ -12,9 +12,9 @@ Empty folder |  Code and text editor
 
 
 # Structure
-  *`doc` - contains various documentation, including screenshots
-  *`main` - main django application for Memorandum project
-  *`memoramdum` - Memorandum django project directory
+ * `doc` - contains various documentation, including screenshots.
+ * `main` - main django application for Memorandum project.
+ * `memoramdum` - Memorandum django project directory.
 
 
 # Requirements to run
