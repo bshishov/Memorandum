@@ -8,14 +8,13 @@ General view of the application |  Creating item form
 :-------------------------:|:-------------------------:
 ![Screenshot. General view](/doc/screenshots/common.png)  |  ![Screenshot. Creating form](/doc/screenshots/createItem.png)
 Empty folder |  Code and text editor
-:-------------------------:|:-------------------------:
 ![Screenshot. Empty folder](/doc/screenshots/emptyFolder.png)  |  ![Screenshot. Code editor](/doc/screenshots/textEditor.png)
 
 
 # Structure
-*`doc` - contains various documentation, including screenshots
-*`main` - main django application for Memorandum project
-*`memoramdum` - Memorandum django project directory
+  *`doc` - contains various documentation, including screenshots
+  *`main` - main django application for Memorandum project
+  *`memoramdum` - Memorandum django project directory
 
 
 # Requirements to run
