@@ -1,5 +1,6 @@
 from django.urls import reverse
 from . import editors
+from . import items
 from .models import Sharing, SharedLink
 import os
 
@@ -13,6 +14,10 @@ def get_representation(item):
 
 class Representation:
     def __init__(self, item, editor=None):
+        """
+        :type item: items.Item
+        :type editor: editors.Editor
+        """
         self.name = item.name
         self.item = item
         self.editor = editor
@@ -26,9 +31,7 @@ class Representation:
 
     @property
     def url(self):
-        full_url = reverse('item_handler', kwargs={'user_id': self.item.owner.id,
-                                                   'relative_path': self.item.rel_path})
-        return full_url
+        return self.item.path_factory.get_url(self.item.rel_path)
 
     @property
     def breadcrumbs(self):

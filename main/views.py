@@ -57,10 +57,8 @@ def item_handler(request, user_id, relative_path):
     if not request.user.is_authenticated:
         return redirect(login_view)
 
-    owner = models.CustomUser.objects.get(id=user_id)
-    current_item = items.get_instance(owner, relative_path)
-
-    return __item_handler(request, current_item, request.user)
+    factory = items.UserPathFactory(models.CustomUser.objects.get(id=user_id))
+    return __item_handler(request, factory.get_item(relative_path), request.user)
 
 
 def link_handler(request, link_id, relative_path):
@@ -68,30 +66,34 @@ def link_handler(request, link_id, relative_path):
     if not link:
         return redirect(login_view)
 
-    current_item = items.get_instance(link.owner, link.item + '/' + relative_path)
-    return __item_handler(request, current_item, request.user)
+    factory = items.SharedLinkPathFactory(link)
+    return __item_handler(request, factory.get_item(relative_path), request.user)
 
 
 def __item_handler(request, current_item, request_user):
+    if current_item is None:
+        return redirect(access_denied)
+
+    # getting the needed action or 'show' by default
+    chosen_action = request.GET.get('action', 'show')
+
+    if not permissions.has_permission(request_user, current_item, chosen_action):
+        return redirect(access_denied)
+
+    # getting the needed editor or searching for default editor
+    editor_name = request.GET.get('editor', None)
+    if editor_name is None:
+        editor = editors.get_default_for(current_item)
+    else:
+        editor = editors.get_editor(editor_name)
+
+    action = getattr(editor, chosen_action, editor.not_exists())
+    return action(current_item, request)
+
+
+def __item_handler_safe(request, current_item, request_user):
     try:
-        if current_item is None:
-            return redirect(access_denied)
-
-        # getting the needed action or 'show' by default
-        chosen_action = request.GET.get('action', 'show')
-
-        if not permissions.has_permission(request_user, current_item, chosen_action):
-            return redirect(access_denied)
-
-        # getting the needed editor or searching for default editor
-        editor_name = request.GET.get('editor', None)
-        if editor_name is None:
-            editor = editors.get_default_for(current_item)
-        else:
-            editor = editors.get_editor(editor_name)
-
-        action = getattr(editor, chosen_action, editor.not_exists())
-        return action(current_item, request)
+        return __item_handler(request, current_item, request_user)
     except ObjectDoesNotExist as error:
         context = Context({'error_code': 404,
                            'error_message': "Object doest not exists",

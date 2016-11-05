@@ -46,7 +46,7 @@
 		</div>
 	</div>
 
-	{% if item_rep.item.is_root != true %}
+	{% if not item_rep.item.is_root %}
 		<a href="javascript:;" class="ui item" onclick="$('#rename').modal('show');">Rename</a>
 	{% endif %}
 

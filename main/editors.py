@@ -88,15 +88,15 @@ class Editor:
         new_name = request.POST.get('name', item.name)
         if not item.is_root:
             item.rename(new_name)
-        return redirect(views.item_handler, user_id=item.owner.id, relative_path=item.rel_path)
+        return redirect(item.path_factory.get_url(item.rel_path))
 
     @classmethod
     def share(cls, item, request):
         user_email = request.POST.get('target', "")
-        sharing_type = int(request.POST.get('type', "-1"))
+        permissions = int(request.POST.get('permissions', "-1"))
         rel_path = item.rel_path
 
-        if sharing_type not in ALL_PERMISSIONS:
+        if permissions not in ALL_PERMISSIONS:
             raise RuntimeError('Invalid sharing type')
 
         share_with = models.CustomUser.objects.get(email=user_email)
@@ -105,11 +105,11 @@ class Editor:
 
         sharing_note, create = models.Sharing.objects.get_or_create(owner=item.owner, item=rel_path,
                                                                     shared_with=share_with,
+                                                                    permissions=permissions,
                                                                     defaults={'permissions': 0})
-        sharing_note.permissions = sharing_type
         sharing_note.save()
 
-        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.rel_path)
+        return redirect(item.path_factory.get_url(item.rel_path))
 
     @classmethod
     def unshare(cls, item, request):
@@ -124,12 +124,12 @@ class Editor:
             raise PermissionError('Only owner can remove sharings')
 
         sharing.delete()
-        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.rel_path)
+        return redirect(item.path_factory.get_url(item.rel_path))
 
     @classmethod
     def delete(cls, item, request):
         item.delete()
-        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
+        return redirect(item.parent.path_factory.get_url(item.parent.rel_path))
 
 
 # editor for directories
@@ -172,24 +172,34 @@ class DirectoryEditor(Editor):
         if request.method == 'POST' and 'file' in request.FILES:
             uploaded_file = request.FILES['file']
             new_rel_path = item.make_path_to_new_item(uploaded_file.name)
-            new_item = items.FileItem(item.owner, new_rel_path)
+            new_item = item.path_factory.new_file(new_rel_path)
             new_item.write_file(uploaded_file.chunks())
-        return redirect(views.item_handler, user_id=item.parent.owner.id, relative_path=item.parent.rel_path)
+        return redirect(item.path_factory.get_url(item.rel_path))
 
     @classmethod
     def create_new(cls, item, request):
         name = request.POST.get('name', "")
         item_type = request.POST.get('item_type', "file")
-        default_name = "new_file"
-        if item_type == "directory":
-            default_name = "new_folder"
-        if name == "":
-            name = default_name
-        new_rel_path = item.make_path_to_new_item(name)
-        new_item = items.get_instance_by_type(item_type, item.absolute_path, item.owner, new_rel_path)
-        if new_item is not None:
-            new_item.create_empty()
-        return redirect(views.item_handler, user_id=item.owner.id, relative_path=item.rel_path)
+
+        if item_type == 'directory':
+            if not name:
+                name = 'New folder'
+
+            new_dir = item.create_child_directory(name)
+            new_dir.create_empty()
+            if new_dir is not None:
+                return redirect(new_dir.path_factory.get_url(new_dir.rel_path))
+
+        if item_type == 'file':
+            if not name:
+                name = 'New File'
+
+            new_file = item.create_child_file(name)
+            new_file.create_empty()
+            if new_file is not None:
+                return redirect(new_file.path_factory.get_url(new_file.rel_path))
+
+        return redirect(item.path_factory.get_url(item.rel_path))
 
 
 # common editor for files
@@ -271,6 +281,8 @@ class ImageEditor(FileEditor):
     THUMB_FORMAT = 'PNG'
     THUMBS_CACHE_SECONDS = 604800
 
+    thumbs_items_factory = items.PlainPathFactory(os.path.join(settings.MEDIA_ROOT, THUMBS_FOLDER))
+
     def __init__(self):
         super(ImageEditor, self).__init__()
         self.name = "image"
@@ -279,15 +291,13 @@ class ImageEditor(FileEditor):
 
     @classmethod
     def preview(cls, item, request):
-        media_directory_item = items.DirectoryItem(item.owner, item.parent.rel_path,
-                                                   os.path.join(settings.MEDIA_ROOT,
-                                                                ImageEditor.THUMBS_FOLDER,
-                                                                str(item.owner.id)))
-        if not media_directory_item.exists and not media_directory_item.is_dir:
+        media_directory_item = ImageEditor.thumbs_items_factory.get_or_create_directory(str(item.owner.id))
+
+        # TODO: DOUBLE CHECK
+        if not media_directory_item.exists:
             media_directory_item.create_empty()
 
-        preview_item = items.FileItem(item.owner, item.name, media_directory_item.absolute_path)
-
+        preview_item = media_directory_item.path_factory.get_or_create_file(item.rel_path)
         if not preview_item.exists or preview_item.modified_time < item.modified_time:
             image = Image.open(item.absolute_path)
             image.thumbnail(ImageEditor.THUMB_SIZE, Image.ANTIALIAS)
