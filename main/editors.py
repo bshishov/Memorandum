@@ -291,20 +291,24 @@ class ImageEditor(FileEditor):
 
     @classmethod
     def preview(cls, item, request):
-        media_directory_item = ImageEditor.thumbs_items_factory.get_or_create_directory(str(item.owner.id))
+
+        media_dir_rel_path = os.path.join(str(item.owner.id), item.parent.rel_path)
+        media_directory_item = ImageEditor.thumbs_items_factory.get_or_create_directory(media_dir_rel_path)
 
         # TODO: DOUBLE CHECK
         if not media_directory_item.exists:
             media_directory_item.create_empty()
 
-        preview_item = media_directory_item.path_factory.get_or_create_file(item.rel_path)
+        preview_item_rel_path = os.path.join(media_dir_rel_path, item.name)
+        preview_item = media_directory_item.path_factory.get_or_create_file(preview_item_rel_path)
         if not preview_item.exists or preview_item.modified_time < item.modified_time:
             image = Image.open(item.absolute_path)
             image.thumbnail(ImageEditor.THUMB_SIZE, Image.ANTIALIAS)
             image.save(preview_item.absolute_path, format=ImageEditor.THUMB_FORMAT)
 
         response = ImageEditor.raw(preview_item, request)
-        response['Cache-Control'] = 'public, max-age:{}'.format(ImageEditor.THUMBS_CACHE_SECONDS)
+        response['Cache-Control'] = 'public, max-age={}'.format(ImageEditor.THUMBS_CACHE_SECONDS)
+        response['Last-modified'] = '{}'.format(preview_item.modified)
         return response
 
     @classmethod
