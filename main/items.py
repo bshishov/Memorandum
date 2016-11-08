@@ -9,7 +9,7 @@ from django.urls import reverse
 mimetypes.init()
 
 
-class AbstractPathFactory(object):
+class AbstractItemFactory(object):
     def absolute_path(self, relative_path):
         raise NotImplementedError
 
@@ -61,61 +61,61 @@ class AbstractPathFactory(object):
         return value.strip().strip('/')
 
 
-class PlainPathFactory(AbstractPathFactory):
+class PlainItemFactory(AbstractItemFactory):
     def __init__(self, base_dir):
         """
         :type base_dir: str
         """
-        super(PlainPathFactory, self).__init__()
+        super(PlainItemFactory, self).__init__()
         self.__base_dir = base_dir
 
     def absolute_path(self, relative_path):
         return os.path.join(self.__base_dir, relative_path)
 
     def get_item(self, relative_path):
-        return AbstractPathFactory._get_item(self, None, relative_path)
+        return AbstractItemFactory._get_item(self, None, relative_path)
 
     def new_file(self, relative_path):
-        return AbstractPathFactory._new_file(self, None, relative_path)
+        return AbstractItemFactory._new_file(self, None, relative_path)
 
     def new_directory(self, relative_path):
-        return AbstractPathFactory._new_directory(self, None, relative_path)
+        return AbstractItemFactory._new_directory(self, None, relative_path)
 
     def get_url(self, relative_path):
         raise PermissionError
 
 
-class UserPathFactory(AbstractPathFactory):
+class UserItemFactory(AbstractItemFactory):
     def __init__(self, owner):
         """
         :type owner: models.CustomUser
         """
-        super(UserPathFactory, self).__init__()
+        super(UserItemFactory, self).__init__()
         self.__owner = owner
 
     def absolute_path(self, relative_path):
         return os.path.join(self.__owner.home_dir, relative_path)
 
     def get_item(self, relative_path):
-        return AbstractPathFactory._get_item(self, self.__owner, relative_path)
+        return AbstractItemFactory._get_item(self, self.__owner, relative_path)
 
     def new_file(self, relative_path):
-        return AbstractPathFactory._new_file(self, self.__owner, relative_path)
+        return AbstractItemFactory._new_file(self, self.__owner, relative_path)
 
     def new_directory(self, relative_path):
-        return AbstractPathFactory._new_directory(self, self.__owner, relative_path)
+        return AbstractItemFactory._new_directory(self, self.__owner, relative_path)
 
     def get_url(self, relative_path):
         return reverse('item_handler', kwargs={'user_id': self.__owner.id,
                                                'relative_path': relative_path})
 
 
-class SharedLinkPathFactory(AbstractPathFactory):
+class SharedLinkItemFactory(AbstractItemFactory):
     def __init__(self, shared_link):
         """
         :type shared_link: models.SharedLink
         """
-        super(SharedLinkPathFactory, self).__init__()
+        super(SharedLinkItemFactory, self).__init__()
         assert(isinstance(shared_link, models.SharedLink))
         self.__link = shared_link
 
@@ -123,13 +123,13 @@ class SharedLinkPathFactory(AbstractPathFactory):
         return os.path.join(self.__link.owner.home_dir, self.__link.item, relative_path)
 
     def get_item(self, relative_path):
-        return AbstractPathFactory._get_item(self, self.__link.owner, relative_path)
+        return AbstractItemFactory._get_item(self, self.__link.owner, relative_path)
 
     def new_file(self, relative_path):
-        return AbstractPathFactory._new_file(self, self.__link.owner, relative_path)
+        return AbstractItemFactory._new_file(self, self.__link.owner, relative_path)
 
     def new_directory(self, relative_path):
-        return AbstractPathFactory._new_directory(self, self.__link.owner, relative_path)
+        return AbstractItemFactory._new_directory(self, self.__link.owner, relative_path)
 
     def get_url(self, relative_path):
         return reverse('link_handler', kwargs={'link_id': self.__link.link_id,
@@ -140,12 +140,12 @@ class SharedLinkPathFactory(AbstractPathFactory):
         return self.__link
 
 
-class SharedItemPathFactory(AbstractPathFactory):
+class SharedItemItemFactory(AbstractItemFactory):
     def __init__(self, sharing):
         """
         :type sharing: models.Sharing
         """
-        super(SharedItemPathFactory, self).__init__()
+        super(SharedItemItemFactory, self).__init__()
         assert(isinstance(sharing, models.Sharing))
         self.__sharing = sharing
 
@@ -153,13 +153,13 @@ class SharedItemPathFactory(AbstractPathFactory):
         return os.path.join(self.__sharing.owner, self.__sharing.item, relative_path)
 
     def get_item(self, relative_path):
-        return AbstractPathFactory._get_item(self, self.__sharing.owner, relative_path)
+        return AbstractItemFactory._get_item(self, self.__sharing.owner, relative_path)
 
     def new_file(self, relative_path):
-        return AbstractPathFactory._new_file(self, self.__sharing.owner, relative_path)
+        return AbstractItemFactory._new_file(self, self.__sharing.owner, relative_path)
 
     def new_directory(self, relative_path):
-        return AbstractPathFactory._new_directory(self, self.__sharing.owner, relative_path)
+        return AbstractItemFactory._new_directory(self, self.__sharing.owner, relative_path)
 
     def get_url(self, relative_path):
         return reverse('item_handler', kwargs={'user_id': self.__sharing.owner.id,
@@ -170,13 +170,13 @@ class SharedItemPathFactory(AbstractPathFactory):
 class Item:
     def __init__(self, path_factory, owner, relative_path):
         """
-        :type path_factory: AbstractPathFactory
+        :type path_factory: AbstractItemFactory
         :type owner: CustomUser
         :type relative_path: str
         """
-        self.path_factory = path_factory
+        self.factory = path_factory
         self.rel_path = relative_path
-        self.absolute_path = self.path_factory.absolute_path(relative_path)
+        self.absolute_path = self.factory.absolute_path(relative_path)
         self.owner = owner
         self.extension = os.path.splitext(self.absolute_path)[1]
         self.parent_path = os.path.dirname(self.absolute_path)
@@ -208,7 +208,7 @@ class Item:
 
     @property
     def parent(self):
-        return self.path_factory.get_item(self.parent_rel_path)
+        return self.factory.get_item(self.parent_rel_path)
 
     @property
     def size(self):
@@ -295,7 +295,7 @@ class DirectoryItem(Item):
             child_items = []
             for child in child_list:
                 try:
-                    child_item = self.path_factory.get_item(self.rel_path + "/" + child)
+                    child_item = self.factory.get_item(self.rel_path + "/" + child)
                     if child_item is not None:
                         child_items.append(child_item)
                 except:
@@ -327,10 +327,10 @@ class DirectoryItem(Item):
         return path
 
     def create_child_file(self, name):
-        return self.path_factory.new_file(self.make_path_to_new_item(name))
+        return self.factory.new_file(self.make_path_to_new_item(name))
 
     def create_child_directory(self, name):
-        return self.path_factory.new_directory(self.make_path_to_new_item(name))
+        return self.factory.new_directory(self.make_path_to_new_item(name))
 
     def create_empty(self):
         if not os.path.exists(self.absolute_path):

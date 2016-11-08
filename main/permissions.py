@@ -62,10 +62,10 @@ def get_nearest_sharing(user, item):
 
 def guest_has_permission(item, action):
     # guest can access only by shared link
-    if not isinstance(item.path_factory, items.SharedLinkPathFactory):
+    if not isinstance(item.factory, items.SharedLinkItemFactory):
         return False
 
-    return __is_permitted(item.rel_path, item.path_factory.link.permissions, action)
+    return __is_permitted(item.rel_path, item.factory.link.permissions, action)
 
 
 def __is_permitted(relative_path, permission, action):

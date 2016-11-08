@@ -19,52 +19,19 @@ mimetypes.init()
 
 
 def get_editor(name):
-    all_editors = get_all_editors()
     editor = UniversalFileEditor
-    for possibleEditor in all_editors:
+    for possibleEditor in editors:
         if possibleEditor.name == name:
             editor = possibleEditor
             break
     return editor
 
 
-def get_all_editors():
-    default_editors = [
-        'CodeEditor',
-        'MarkdownEditor',
-        'DirectoryEditor',
-        'ImageEditor',
-        'AudioEditor',
-        'VideoEditor',
-        'OnlyOfficeEditor',
-        'PdfEditor',
-        'UniversalFileEditor'
-    ]
-    if hasattr(settings, 'EDITORS') and len(settings.EDITORS) > 0:
-        editor_names = settings.EDITORS
-    else:
-        editor_names = default_editors
-    initialized_editors = []
-    for editor_name in editor_names:
-        module_path_parts = editor_name.rsplit(".", 1)
-        if len(module_path_parts) > 1:
-            module = importlib.import_module(module_path_parts[0])
-            editor_name = module_path_parts[1]
-            editor_constructor = getattr(module, editor_name)
-            initialized_editors.append(editor_constructor())
-        else:
-            editor = globals()[editor_name]()
-            initialized_editors.append(editor)
-    return initialized_editors
-
-
 def get_default_for(item):
-    all_editors = get_all_editors()
-    for possibleEditor in all_editors:
+    for possibleEditor in editors:
         if possibleEditor.can_handle(item):
-            default_editor = possibleEditor
-            break
-    return default_editor
+            return possibleEditor
+    raise LookupError('No suitable editor found for item {}'.format(item))
 
 
 # abstract editor
@@ -88,7 +55,7 @@ class Editor:
         new_name = request.POST.get('name', item.name)
         if not item.is_root:
             item.rename(new_name)
-        return redirect(item.path_factory.get_url(item.rel_path))
+        return redirect(item.factory.get_url(item.rel_path))
 
     @classmethod
     def share(cls, item, request):
@@ -109,7 +76,7 @@ class Editor:
                                                                     defaults={'permissions': 0})
         sharing_note.save()
 
-        return redirect(item.path_factory.get_url(item.rel_path))
+        return redirect(item.factory.get_url(item.rel_path))
 
     @classmethod
     def unshare(cls, item, request):
@@ -124,12 +91,12 @@ class Editor:
             raise PermissionError('Only owner can remove sharings')
 
         sharing.delete()
-        return redirect(item.path_factory.get_url(item.rel_path))
+        return redirect(item.factory.get_url(item.rel_path))
 
     @classmethod
     def delete(cls, item, request):
         item.delete()
-        return redirect(item.parent.path_factory.get_url(item.parent.rel_path))
+        return redirect(item.parent.factory.get_url(item.parent.rel_path))
 
 
 # editor for directories
@@ -172,9 +139,9 @@ class DirectoryEditor(Editor):
         if request.method == 'POST' and 'file' in request.FILES:
             uploaded_file = request.FILES['file']
             new_rel_path = item.make_path_to_new_item(uploaded_file.name)
-            new_item = item.path_factory.new_file(new_rel_path)
+            new_item = item.factory.new_file(new_rel_path)
             new_item.write_file(uploaded_file.chunks())
-        return redirect(item.path_factory.get_url(item.rel_path))
+        return redirect(item.factory.get_url(item.rel_path))
 
     @classmethod
     def create_new(cls, item, request):
@@ -188,7 +155,7 @@ class DirectoryEditor(Editor):
             new_dir = item.create_child_directory(name)
             new_dir.create_empty()
             if new_dir is not None:
-                return redirect(new_dir.path_factory.get_url(new_dir.rel_path))
+                return redirect(new_dir.factory.get_url(new_dir.rel_path))
 
         if item_type == 'file':
             if not name:
@@ -197,9 +164,9 @@ class DirectoryEditor(Editor):
             new_file = item.create_child_file(name)
             new_file.create_empty()
             if new_file is not None:
-                return redirect(new_file.path_factory.get_url(new_file.rel_path))
+                return redirect(new_file.factory.get_url(new_file.rel_path))
 
-        return redirect(item.path_factory.get_url(item.rel_path))
+        return redirect(item.factory.get_url(item.rel_path))
 
 
 # common editor for files
@@ -281,7 +248,7 @@ class ImageEditor(FileEditor):
     THUMB_FORMAT = 'PNG'
     THUMBS_CACHE_SECONDS = 604800
 
-    thumbs_items_factory = items.PlainPathFactory(os.path.join(settings.MEDIA_ROOT, THUMBS_FOLDER))
+    thumbs_items_factory = items.PlainItemFactory(os.path.join(settings.MEDIA_ROOT, THUMBS_FOLDER))
 
     def __init__(self):
         super(ImageEditor, self).__init__()
@@ -300,7 +267,7 @@ class ImageEditor(FileEditor):
             media_directory_item.create_empty()
 
         preview_item_rel_path = os.path.join(media_dir_rel_path, item.name)
-        preview_item = media_directory_item.path_factory.get_or_create_file(preview_item_rel_path)
+        preview_item = media_directory_item.factory.get_or_create_file(preview_item_rel_path)
         if not preview_item.exists or preview_item.modified_time < item.modified_time:
             image = Image.open(item.absolute_path)
             image.thumbnail(ImageEditor.THUMB_SIZE, Image.ANTIALIAS)
@@ -422,3 +389,35 @@ class PdfEditor(FileEditor):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/pdf.html", context)
+
+
+def __init_editors():
+    default_editors = [
+        'CodeEditor',
+        'MarkdownEditor',
+        'DirectoryEditor',
+        'ImageEditor',
+        'AudioEditor',
+        'VideoEditor',
+        'OnlyOfficeEditor',
+        'PdfEditor',
+        'UniversalFileEditor'
+    ]
+    if hasattr(settings, 'EDITORS') and len(settings.EDITORS) > 0:
+        editor_names = settings.EDITORS
+    else:
+        editor_names = default_editors
+    initialized_editors = []
+    for editor_name in editor_names:
+        module_path_parts = editor_name.rsplit(".", 1)
+        if len(module_path_parts) > 1:
+            module = importlib.import_module(module_path_parts[0])
+            editor_name = module_path_parts[1]
+            editor_constructor = getattr(module, editor_name)
+            initialized_editors.append(editor_constructor())
+        else:
+            editor = globals()[editor_name]()
+            initialized_editors.append(editor)
+    return initialized_editors
+
+editors = __init_editors()

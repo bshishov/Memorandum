@@ -31,7 +31,7 @@ class Representation:
 
     @property
     def url(self):
-        return self.item.path_factory.get_url(self.item.rel_path)
+        return self.item.factory.get_url(self.item.rel_path)
 
     @property
     def breadcrumbs(self):

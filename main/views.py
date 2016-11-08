@@ -57,7 +57,7 @@ def item_handler(request, user_id, relative_path):
     if not request.user.is_authenticated:
         return redirect(login_view)
 
-    factory = items.UserPathFactory(models.CustomUser.objects.get(id=user_id))
+    factory = items.UserItemFactory(models.CustomUser.objects.get(id=user_id))
     return __item_handler(request, factory.get_item(relative_path), request.user)
 
 
@@ -66,7 +66,7 @@ def link_handler(request, link_id, relative_path):
     if not link:
         return redirect(login_view)
 
-    factory = items.SharedLinkPathFactory(link)
+    factory = items.SharedLinkItemFactory(link)
     return __item_handler(request, factory.get_item(relative_path), request.user)
 
 
