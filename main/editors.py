@@ -197,6 +197,10 @@ class FileEditor(Editor):
         response['X-Sendfile'] = item.name
         return response
 
+    @classmethod
+    def save(cls, item, request):
+        pass
+
 
 class UniversalFileEditor(FileEditor):
     def __init__(self):

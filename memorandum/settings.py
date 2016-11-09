@@ -127,5 +127,5 @@ EXTS_SPREADSHEET = [".xls", ".xlsx"]
 
 EXTS_PRESENTATION = [".ppt", ".pptx"]
 
-MEDIA_ROOT = "/media"
+MEDIA_ROOT = BASE_DIR + "/media"
 
