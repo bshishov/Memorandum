@@ -9,14 +9,16 @@
 		</div>
 	</div>
 
+	{% if user %}
 	<div class="item">
-		<a class="title" href="/">Home</a>
+		<a class="title" href="{{ user.home_dir_item.url }}">Home</a>
 		<div class="menu">
-			{% for child in user.base.child_directories %}
+			{% for child in user.home_dir_item.content %}
 			<a class="item" href="{{ child.url }}">{{ child.name }}</a>
 			{% endfor %}
 		</div>
 	</div>
+	{% endif %}
 
 	<div class="item">
 		<a class="title" href="{{ base_directory.url }}">{{ base_directory.name }}</a>

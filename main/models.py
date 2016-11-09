@@ -92,6 +92,12 @@ class CustomUser(AbstractBaseUser):
         # Simplest possible answer: All admins are staff
         return self.is_admin
 
+    @property
+    def home_dir_item(self):
+        from .items import UserItemFactory
+        from .item_reps import get_representation
+        return get_representation(UserItemFactory(self).get_item('/'))
+
 
 # need to store information about directory-sharing
 class Sharing (models.Model):
