@@ -98,15 +98,24 @@ class CustomUser(AbstractBaseUser):
         from .item_reps import get_representation
         return get_representation(UserItemFactory(self).get_item('/'))
 
+    @property
+    def shared_items_with_me(self):
+        from .items import SharedItemItemFactory
+        from .item_reps import get_representation
+        items = []
+        for sharing in self.shared_with_me.all():
+            items.append(get_representation(SharedItemItemFactory(sharing).get_item('/')))
+        return items
+
 
 # need to store information about directory-sharing
 class Sharing (models.Model):
     # owner of shared dir
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="sharings")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="my_sharings")
     # which item is shared
     item = models.CharField(max_length=1024, blank=True, null=False)
     # with who it is shared
-    shared_with = models.ForeignKey(settings.AUTH_USER_MODEL)
+    shared_with = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='shared_with_me')
     # bitmask - what owner allows second person to do
     permissions = models.IntegerField()
 
@@ -115,7 +124,7 @@ class Sharing (models.Model):
 
 
 class SharedLink(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="shared_links")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="my_shared_links")
     item = models.CharField(max_length=1024, blank=True, null=False)
     link_id = models.CharField(max_length=256, blank=False, null=False, unique=True)
     permissions = models.IntegerField()

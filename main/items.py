@@ -150,7 +150,7 @@ class SharedItemItemFactory(AbstractItemFactory):
         self.__sharing = sharing
 
     def absolute_path(self, relative_path):
-        return os.path.join(self.__sharing.owner, self.__sharing.item, relative_path)
+        return os.path.join(self.__sharing.owner.home_dir, self.__sharing.item, relative_path)
 
     def get_item(self, relative_path):
         return AbstractItemFactory._get_item(self, self.__sharing.owner, relative_path)

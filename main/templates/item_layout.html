@@ -18,16 +18,18 @@
 			{% endfor %}
 		</div>
 	</div>
-	{% endif %}
 
 	<div class="item">
-		<a class="title" href="{{ base_directory.url }}">{{ base_directory.name }}</a>
+		<div class="title">Shared with me</div>
 		<div class="menu">
-			{% for child in base_directory.child_directories %}
+			{% for child in  user.shared_items_with_me %}
 			<a class="item" href="{{ child.url }}">{{ child.name }}</a>
 			{% endfor %}
 		</div>
 	</div>
+	{% endif %}
+
+
 
 	<a class="item" href="/logout">Logout</a>
 </div>
