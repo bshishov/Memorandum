@@ -128,7 +128,7 @@ EXTS_SPREADSHEET = [".xls", ".xlsx"]
 EXTS_PRESENTATION = [".ppt", ".pptx"]
 
 if 'BASE_DIR' not in locals():
-    BASE_DIR = os.path.abspath(__file__)
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 MEDIA_ROOT = BASE_DIR + "/media"
 
