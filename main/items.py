@@ -149,8 +149,11 @@ class SharedItemItemFactory(AbstractItemFactory):
         assert(isinstance(sharing, models.Sharing))
         self.__sharing = sharing
 
+    def __combine_rel_path(self, relative_path):
+        return os.path.join(self.__sharing.item, relative_path)
+
     def absolute_path(self, relative_path):
-        return os.path.join(self.__sharing.owner, self.__sharing.item, relative_path)
+        return os.path.join(self.__sharing.owner.home_dir, self.__sharing.item, relative_path)
 
     def get_item(self, relative_path):
         return AbstractItemFactory._get_item(self, self.__sharing.owner, relative_path)
@@ -163,7 +166,7 @@ class SharedItemItemFactory(AbstractItemFactory):
 
     def get_url(self, relative_path):
         return reverse('item_handler', kwargs={'user_id': self.__sharing.owner.id,
-                                               'relative_path': relative_path})
+                                               'relative_path': self.__combine_rel_path(relative_path)})
 
 
 # abstract item - file or directory
