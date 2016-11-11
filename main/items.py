@@ -270,10 +270,15 @@ class FileItem(Item):
         f.close()
         return content
 
-    def write_file(self, chunks):
+    def write_chunks(self, chunks):
         f = open(self.absolute_path, 'wb+')
         for chunk in chunks:
             f.write(chunk)
+        f.close()
+
+    def write_content(self, content):
+        f = open(self.absolute_path, 'w')
+        f.write(content)
         f.close()
 
     def create_empty(self):

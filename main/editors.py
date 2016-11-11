@@ -10,7 +10,7 @@ import datetime
 import mimetypes
 import os.path
 from . import items
-from . import views
+from . import responses
 from . import models
 from . import item_reps
 from .permissions import ALL_PERMISSIONS
@@ -140,7 +140,7 @@ class DirectoryEditor(Editor):
             uploaded_file = request.FILES['file']
             new_rel_path = item.make_path_to_new_item(uploaded_file.name)
             new_item = item.factory.new_file(new_rel_path)
-            new_item.write_file(uploaded_file.chunks())
+            new_item.write_chunks(uploaded_file.chunks())
         return redirect(item.factory.get_url(item.rel_path))
 
     @classmethod
@@ -197,10 +197,6 @@ class FileEditor(Editor):
         response['X-Sendfile'] = item.name
         return response
 
-    @classmethod
-    def save(cls, item, request):
-        pass
-
 
 class UniversalFileEditor(FileEditor):
     def __init__(self):
@@ -231,6 +227,17 @@ class CodeEditor(FileEditor):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/code.html", context)
+
+    @classmethod
+    def save(cls, item, request):
+        new_text = request.GET.get('new_text', None)
+        errors = []
+        if new_text is None:
+            errors.append('no received data')
+            return responses.AjaxResponse('failure', 'No data received', errors)
+        # TODO: no write success check
+        item.write_content(new_text)
+        return responses.AjaxResponse('OK', 'File saved successfully')
 
 
 class MarkdownEditor(FileEditor):
