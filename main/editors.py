@@ -230,7 +230,7 @@ class CodeEditor(FileEditor):
 
     @classmethod
     def save(cls, item, request):
-        new_text = request.GET.get('new_text', None)
+        new_text = request.POST.get('new_text', None)
         errors = []
         if new_text is None:
             errors.append('no received data')

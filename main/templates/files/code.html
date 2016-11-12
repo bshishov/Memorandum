@@ -1,5 +1,66 @@
 {% extends 'file_layout.html' %}
 
+{% block item_header %}
+<div class="ui item" id="savechanges"><i class="save icon"></i></div>
+<script>
+        $(document).ready(function(){
+            $("#savechanges").on("click", function(){
+                //get an array of innerHTML of all lines
+                var innerHtmlArray = $(".ace_line").map(function() {
+                     return this.innerHTML;
+                }).get();
+                // join all innerHTMLs with \n
+                var text = innerHtmlArray.join( "\n" );
+                
+                function getCookie(name) {
+                   var cookieValue = null;
+                   if (document.cookie && document.cookie != '') {
+                      var cookies = document.cookie.split(';');
+                      for (var i = 0; i < cookies.length; i++) {
+                          var cookie = jQuery.trim(cookies[i]);
+                          // Does this cookie string begin with the name we want?
+                          if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                             break;
+                          }
+                      }
+                   }
+                 return cookieValue;
+                }
+
+                var csrftoken = getCookie('csrftoken');
+                
+                //Ajax call
+                function csrfSafeMethod(method) {
+                   // these HTTP methods do not require CSRF protection
+                   return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+                }
+
+                $.ajaxSetup({
+                             crossDomain: false, // obviates need for sameOrigin test
+                             beforeSend: function(xhr, settings) {
+                                         if (!csrfSafeMethod(settings.type)) {
+                                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                                            }
+                             }
+                });
+                $.ajax({
+										type: "POST",
+                    url: "{{item_rep.url}}?action=save", 
+                    datatype: 'json',
+		     						data: {'new_text': text, 'csrfmiddleware‌​token': csrftoken},
+                    success: function(data){
+                        alert(data.message);
+                    },
+                    error: function(xhr, status, error){
+                        alert(error);
+                    }
+                });
+            });
+        });
+</script>
+{% endblock %}
+
 {% block file_content %}
 {% load staticfiles %}
 <div id="editor"></div>
