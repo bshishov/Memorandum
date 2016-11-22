@@ -1,64 +1,9 @@
 {% extends 'file_layout.html' %}
 
 {% block item_header %}
-<div class="ui item" id="savechanges"><i class="save icon"></i></div>
-<script>
-        $(document).ready(function(){
-            $("#savechanges").on("click", function(){
-                //get an array of innerHTML of all lines
-                var innerHtmlArray = $(".ace_line").map(function() {
-                     return this.innerHTML;
-                }).get();
-                // join all innerHTMLs with \n
-                var text = innerHtmlArray.join( "\n" );
-                
-                function getCookie(name) {
-                   var cookieValue = null;
-                   if (document.cookie && document.cookie != '') {
-                      var cookies = document.cookie.split(';');
-                      for (var i = 0; i < cookies.length; i++) {
-                          var cookie = jQuery.trim(cookies[i]);
-                          // Does this cookie string begin with the name we want?
-                          if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                             cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                             break;
-                          }
-                      }
-                   }
-                 return cookieValue;
-                }
-
-                var csrftoken = getCookie('csrftoken');
-                
-                //Ajax call
-                function csrfSafeMethod(method) {
-                   // these HTTP methods do not require CSRF protection
-                   return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-                }
-
-                $.ajaxSetup({
-                             crossDomain: false, // obviates need for sameOrigin test
-                             beforeSend: function(xhr, settings) {
-                                         if (!csrfSafeMethod(settings.type)) {
-                                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
-                                            }
-                             }
-                });
-                $.ajax({
-										type: "POST",
-                    url: "{{item_rep.url}}?action=save", 
-                    datatype: 'json',
-		     						data: {'new_text': text, 'csrfmiddleware‌​token': csrftoken},
-                    success: function(data){
-                        alert(data.message);
-                    },
-                    error: function(xhr, status, error){
-                        alert(error);
-                    }
-                });
-            });
-        });
-</script>
+<div class="ui secondary menu">
+    <a class="item" id="savechanges"><i class="save icon"></i> Save</a>
+</div>
 {% endblock %}
 
 {% block file_content %}
@@ -67,44 +12,61 @@
 <script src="{% static 'js/ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
 <script src="{% static 'js/ace/ext-modelist.js' %}" type="text/javascript" charset="utf-8"></script>
 <script>
-    $(document).ready(function(){
-        var path = "{{item_rep.url}}?action=raw";
+    var ITEM_RAW_URL = "{{item_rep.url}}?editor=code&action=raw";
+    var ITEM_SAVE_URL = "{{item_rep.url}}?editor=code&action=save";
+    var ITEM_FILENAME = "{{item_rep.url}}";
+    var editor;
 
+    $(document).ready(function() {
         $.ajax({
-          url: path,
-          dataType: "text",
-          success: function(data) {
-            var modelist = ace.require("ace/ext/modelist");
-            var mode = modelist.getModeForPath("{{item_rep.url}}").mode;
-            var editor = ace.edit("editor");
-			editor.$blockScrolling = Infinity;
-            editor.setTheme("ace/theme/github");
-            editor.getSession().setValue(data, -1);
-            editor.getSession().setMode(mode);
-            editor.setAutoScrollEditorIntoView(true);
-            editor.setOption("minLines", 10);
-			editor.setFontSize(14);
-            editor.setOption("scrollPastEnd", true);
+            url: ITEM_RAW_URL,
+            dataType: "text",
+            success: function(data) {
+                var modelist = ace.require("ace/ext/modelist");
+                var mode = modelist.getModeForPath(ITEM_FILENAME).mode;
+                editor = ace.edit("editor");
+                editor.$blockScrolling = Infinity;
+                editor.setTheme("ace/theme/github");
+                editor.getSession().setValue(data, -1);
+                editor.getSession().setMode(mode);
+                editor.setAutoScrollEditorIntoView(true);
+                editor.setOption("minLines", 10);
+                editor.setFontSize(14);
+                editor.setOption("scrollPastEnd", true);
 
+                var heightUpdateFunction = function() {
+                    $('#editor').height($('#editor').parent().height());
+                    editor.resize();
+                };
 
-			var heightUpdateFunction = function() {
-				$('#editor').height($('#editor').parent().height());
-				editor.resize();
-			};
+                // Set initial size to match initial content
+                heightUpdateFunction();
 
-			// Set initial size to match initial content
-			heightUpdateFunction();
-
-			// Whenever a change happens inside the ACE editor, update
-			// the size again
-			//editor.getSession().on('change', heightUpdateFunction);
-			$( window ).resize(heightUpdateFunction);
-          },
+                // Whenever a change happens inside the ACE editor, update
+                // the size again
+                //editor.getSession().on('change', heightUpdateFunction);
+                $( window ).resize(heightUpdateFunction);
+            },
         });
 
-
-
-
+        $("#savechanges").on("click", function(){
+            var text = editor.getValue();
+            $.ajax({
+                type: "POST",
+                url: ITEM_SAVE_URL,
+                datatype: 'json',
+                data: {
+                    'new_text': text,
+                    'csrfmiddleware‌​token': csrfToken
+                },
+                success: function(data){
+                    alert(data.message);
+                },
+                error: function(xhr, status, error){
+                    alert(error);
+                }
+            });
+        });
     });
 </script>
 {% endblock %}

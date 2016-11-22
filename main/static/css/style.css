@@ -28,7 +28,7 @@ body > .main {
     display: flex;
     /*margin-left: 260px;*/
     flex-direction: column;
-    padding-top: 36px;
+    padding-top: 42px;
 }
 
 .main > .header {
@@ -208,4 +208,15 @@ body > .main {
 .responsive-img{
   max-width: 100%;
   max-height: 100%;
+}
+
+.toolbar {
+    padding: 5px 5px 2px 5px;
+
+   /* Permalink - use to edit and share this gradient: http://colorzilla.com/gradient-editor/#c4c4c4+0,ededed+100 */
+    background: #c4c4c4; /* Old browsers */
+    background: -moz-linear-gradient(top,  #c4c4c4 0%, #ededed 100%); /* FF3.6-15 */
+    background: -webkit-linear-gradient(top,  #c4c4c4 0%,#ededed 100%); /* Chrome10-25,Safari5.1-6 */
+    background: linear-gradient(to bottom,  #c4c4c4 0%,#ededed 100%); /* W3C, IE10+, FF16+, Chrome26+, Opera12+, Safari7+ */
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#c4c4c4', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
 }
