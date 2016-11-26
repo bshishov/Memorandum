@@ -4,9 +4,9 @@ Memorandum makes user home directory accessible from the Internet and allows to 
 delete and upload files or directories. It also provides an opportunity to share your home
 directory with another user and define his permissions. Here are some screenshots:
 
-[Folder view](/doc/screenshots/folder.png)
-[Code Editor](/doc/screenshots/code_editor.png)
-[PDF viewer](/doc/screenshots/pdf_viewer.png)
+![Folder view](/doc/screenshots/folder.png)
+![Code Editor](/doc/screenshots/code_editor.png)
+![PDF viewer](/doc/screenshots/pdf_viewer.png)
 
 # Installation
 To run Memorandum on your PC, you need python 3.x and django 1.10.
@@ -43,6 +43,3 @@ Action - is an operation that could be performed on an item. It is implemented a
  * `doc` - contains various documentation, including screenshots.
  * `main` - main django application for Memorandum project.
  * `memoramdum` - Memorandum django project directory.
-
-
-# Requirements to run
