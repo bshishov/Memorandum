@@ -1,9 +1,5 @@
 <div class="md-editor">
-	<div class="ui basic segment">
-		<div class="ui basic right floated buttons">
-			<a href="javascript:;" class="ui button toggle" data-tab="second"><i class="icon code"></i>Code</a>
-			<a href="javascript:;" class="ui button save">Save</a>
-		</div>
+	<div class="ui basic segment md-html-container">
 		<div class="md-html"></div>
 	</div>
 	<div class="ui form md-raw-form" style="display:none;">
@@ -39,23 +35,25 @@
           },
         });
 
-
 		$(".md-editor .md-raw").change(function() {
 			var htmlContent = md2html.makeHtml(  $(".md-editor .md-raw").val() );
 			mediumEditor.setContent(htmlContent, 0)
 			console.log("changed");
 		});
 
-		$(".md-editor .toggle").click(function() {
+		$(".md-code").click(function() {
 			$(".md-editor .md-raw-form").toggle();
-			$(".md-editor .md-html").toggle();
+			$(".md-editor .md-html-container").toggle();
 		});
 
-		$(".md-editor .save").click(function() {
+		$(".md-save").click(function() {
 			var val = $(".md-editor .md-raw").val();
-      $.post("{{item_rep.url}}?action=save", { data: val })
-        //.done(function(data) { alert(data) })
-        .error(function(error) { console.log(error) });
+      		$.post("{{item_rep.url}}?editor=markdown&action=save", { data: val })
+        	.done(function(data) {
+        		alert(data.message);
+        		console.log(data);
+        	})
+        	.error(function(error) { console.log(error) });
 		});
   });
 </script>

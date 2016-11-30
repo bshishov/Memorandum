@@ -50,13 +50,12 @@
         });
 
         $("#savechanges").on("click", function(){
-            var text = editor.getValue();
             $.ajax({
                 type: "POST",
                 url: ITEM_SAVE_URL,
                 datatype: 'json',
                 data: {
-                    'new_text': text,
+                    'data': editor.getValue(),
                     'csrfmiddleware‌​token': csrfToken
                 },
                 success: function(data){

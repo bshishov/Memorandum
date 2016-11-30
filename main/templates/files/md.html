@@ -1,4 +1,11 @@
-﻿{% extends 'file_layout.html' %}
+{% extends 'file_layout.html' %}
+
+{% block item_header %}
+<div class="ui secondary menu">
+    <a class="item md-save" href="javascript:;"><i class="save icon"></i> Save</a>
+	<a class="item md-code" href="javascript:;"><i class="code icon"></i> Toggle code</a>
+</div>
+{% endblock %}
 
 {% block file_content %}
 <div class="ui main container">

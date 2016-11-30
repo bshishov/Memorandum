@@ -62,6 +62,10 @@ body > .main {
     display: inline-block;
 }
 
+.main > .contentwrapper > .content > .grid {
+    margin: 0;
+}
+
 .main > .contentwrapper > .notes {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;

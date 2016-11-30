@@ -87,7 +87,7 @@ def __item_handler(request, current_item, request_user):
     else:
         editor = editors.get_editor(editor_name)
 
-    action = getattr(editor, chosen_action, editor.not_exists())
+    action = getattr(editor, chosen_action, editor.default)
     return action(current_item, request)
 
 

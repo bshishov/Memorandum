@@ -43,7 +43,8 @@ class Editor:
         self.thumbnail = "blocks/thumbnails/file.html"
 
     # returns if needed action was not found
-    def not_exists(self):
+    @classmethod
+    def default(cls, item, request):
         return HttpResponse("No such action")
 
     @classmethod
@@ -197,6 +198,17 @@ class FileEditor(Editor):
         response['X-Sendfile'] = item.name
         return response
 
+    @classmethod
+    def save(cls, item, request):
+        data = request.POST.get('data', None)
+        errors = []
+        if data is None:
+            errors.append('No data received')
+            return responses.AjaxResponse(responses.RESULT_ERROR, 'No data received', errors)
+        # TODO: no write success check
+        item.write_content(data)
+        return responses.AjaxResponse(responses.RESULT_OK, 'File saved successfully')
+
 
 class UniversalFileEditor(FileEditor):
     def __init__(self):
@@ -227,17 +239,6 @@ class CodeEditor(FileEditor):
         item_rep = item_reps.FileRepresentation(item)
         context = Context({'item_rep': item_rep})
         return render(request, "files/code.html", context)
-
-    @classmethod
-    def save(cls, item, request):
-        new_text = request.POST.get('new_text', None)
-        errors = []
-        if new_text is None:
-            errors.append('no received data')
-            return responses.AjaxResponse('failure', 'No data received', errors)
-        # TODO: no write success check
-        item.write_content(new_text)
-        return responses.AjaxResponse('OK', 'File saved successfully')
 
 
 class MarkdownEditor(FileEditor):
