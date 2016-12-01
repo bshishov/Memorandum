@@ -3,7 +3,19 @@
 {% block file_content %}
 <div class="image-file" align="center">
     <div>
-        <img class="responsive-img" src="{{item_rep.url}}?action=raw" data-caption="{{item_rep.name}}">
+        <img class="responsive-img" id="image" src="{{item_rep.url}}?action=raw" data-caption="{{item_rep.name}}" alt="{{item_rep.name}}">
     </div>
 </div>
+
+<script type="text/javascript">
+var viewer = new Viewer(document.getElementById('image'), {
+    inline: true,
+    title: true,
+    toolbar: true,
+    navbar: false,
+    ready: function() {
+        $("#image").hide();
+    },
+});
+</script>
 {% endblock %}
