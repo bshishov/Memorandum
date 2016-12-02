@@ -177,7 +177,7 @@ body > .main {
 
 .file-icon::after {
   display: block;
-  content: attr(data-type);
+  content: attr(data-extension);
   position: absolute;
   bottom: 0;
   left: 0;
@@ -199,6 +199,26 @@ body > .main {
   color: white;
 }
 
+.file-icon.gray {
+  background-image:  url('/static/img/fileicons/blank-gray.png');
+  color: white;
+}
+
+.file-icon.green {
+  background-image:  url('/static/img/fileicons/blank-green.png');
+  color: white;
+}
+
+.file-icon.light-blue {
+  background-image:  url('/static/img/fileicons/blank-light-blue.png');
+  color: white;
+}
+
+.file-icon.magenta {
+  background-image:  url('/static/img/fileicons/blank-magenta.png');
+  color: white;
+}
+
 .file-icon.orange {
   background-image:  url('/static/img/fileicons/blank-orange.png');
   color: white;
@@ -207,6 +227,21 @@ body > .main {
 .file-icon.red {
   background-image:  url('/static/img/fileicons/blank-red.png');
   color: white;
+}
+
+.file-icon.teal {
+  background-image:  url('/static/img/fileicons/blank-teal.png');
+  color: white;
+}
+
+.file-icon.white {
+  background-image:  url('/static/img/fileicons/blank-white.png');
+  color: black;
+}
+
+.file-icon.yellow {
+  background-image:  url('/static/img/fileicons/blank-yellow.png');
+  color: black;
 }
 
 .responsive-img{

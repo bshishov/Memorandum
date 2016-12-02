@@ -94,6 +94,28 @@ $('.dropdown')
 	</div>
 	{% endfor %}
 </div>
+
+<script type="text/javascript">
+	var thumbnail_colors = [ 'white', 'gray', 'green', 'light-blue', 'magenta', 'orange', 'red', 'teal', 'yellow'];
+	//var thumbnail_colors = [ 'white', 'black', 'blue', 'dark-blue', 'gray', 'green', 'light-blue', 'magenta', 'orange', 'red', 'teal', 'yellow'];
+
+	hashCode = function(s, c=0){
+	  	return s.split("").reduce(function(a,b){a=((a<<5)-a)+b.charCodeAt(0) + c;return a&a},0);
+	}
+
+	function nameToColor(name) {
+		var hash = hashCode(name, 28); // also goon random schemes: 12 24 25 26
+		var index = hash % thumbnail_colors.length;
+		return thumbnail_colors[index];
+	}
+
+	$(function() {
+	  	$(".file-icon").each(function(index) {
+	  		var extension = $( this ).attr('data-extension');
+			$( this ).addClass(nameToColor(extension));
+	  	});
+	});
+</script>
 {% endblock %}
 
 {% block item_notes %}
