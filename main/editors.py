@@ -326,17 +326,22 @@ class VideoEditor(FileEditor):
 
 
 class OnlyOfficeEditor(FileEditor):
+    EXTS_DOCUMENT = [".doc", ".docx"]
+    EXTS_SPREADSHEET = [".xls", ".xlsx"]
+    EXTS_PRESENTATION = [".ppt", ".pptx"]
+    EXTENSIONS = EXTS_DOCUMENT + EXTS_SPREADSHEET + EXTS_PRESENTATION
+
     def __init__(self):
         super(OnlyOfficeEditor, self).__init__()
         self.name = "office"
-        self.extensions = OnlyOfficeEditor.get_all_extensions()
         self.thumbnail = "blocks/thumbnails/file.html"
+        self.extensions = self.EXTENSIONS
 
     @classmethod
     def show(cls, item, request):
         now = datetime.datetime.now()
         curr_date = str(now.day) + "." + str(now.month) + "." + str(now.year)
-        api_src = settings.ONLYOFFICE_SERV_API_URL
+        api_src = settings.ONLYOFFICE_SERVER + "/web-apps/apps/api/documents/api.js"
         item_rep = item_reps.FileRepresentation(item)
         last_breadcrumb = len(item_rep.breadcrumbs) - 1
         item_url = item_rep.url
@@ -345,7 +350,9 @@ class OnlyOfficeEditor(FileEditor):
         doc_editor_key = OnlyOfficeEditor.get_doc_editor_key(client_ip, item_rep.name)
         doc_type = OnlyOfficeEditor.get_document_type(item)
         ext = item_rep.item.extension.lstrip(".")
-        context = Context({'item_rep': item_rep, 'api_src': api_src,
+        context = Context({'item_rep': item_rep,
+                           'api_src': api_src,
+                           'http_host': request.META['HTTP_HOST'],
                            'doc_type': doc_type, 'doc_editor_key': doc_editor_key,
                            'client_ip': client_ip, 'parent_url': parent_url,
                            'curr_date': curr_date, 'ext': ext, 'item_url': item_url})
@@ -353,23 +360,14 @@ class OnlyOfficeEditor(FileEditor):
 
     @classmethod
     def get_document_type(cls, item):
-        ext = "." + item.extension
-        if item.extension in settings.EXTS_DOCUMENT:
+        if item.extension in cls.EXTS_DOCUMENT:
             return "text"
-        elif item.extension in settings.EXTS_SPREADSHEET:
+        elif item.extension in cls.EXTS_SPREADSHEET:
             return "spreadsheet"
-        elif item.extension in settings.EXTS_PRESENTATION:
+        elif item.extension in cls.EXTS_PRESENTATION:
             return "presentation"
         else:
             return ""
-
-    @classmethod
-    def get_all_extensions(cls):
-        extensions = []
-        extensions.extend(settings.EXTS_DOCUMENT)
-        extensions.extend(settings.EXTS_SPREADSHEET)
-        extensions.extend(settings.EXTS_PRESENTATION)
-        return extensions
 
     @classmethod
     def get_doc_editor_key(cls, ip, name):
@@ -386,6 +384,11 @@ class OnlyOfficeEditor(FileEditor):
 
     @classmethod
     def track(cls, item, request, permissions):
+        pass
+
+    @classmethod
+    def save_callback(cls, item, request, permissions):
+        print(request.GET)
         pass
 
 

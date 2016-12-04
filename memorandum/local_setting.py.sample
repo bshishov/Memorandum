@@ -11,3 +11,6 @@ DATABASES = {
 
 # Secret key required for django security. Cahnge it to any string and don't expose it to the public.
 SECRET_KEY = 'SOME_SECRET_STRING_CHANGE_IT'
+
+# ONLYOFFICE SERVER PATH
+ONLYOFFICE_SERVER = "http://localhost/"

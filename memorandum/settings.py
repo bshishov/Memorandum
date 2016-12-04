@@ -10,7 +10,6 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
-from .local_settings import *
 import os
 
 
@@ -119,16 +118,12 @@ STATIC_URL = '/static/'
 AUTH_USER_MODEL = 'main.CustomUser'
 
 # for OnlyOffice
-ONLYOFFICE_SERV_API_URL = "https://doc.onlyoffice.com/web-apps/apps/api/documents/api.js"
-
-EXTS_DOCUMENT = [".doc", ".docx"]
-
-EXTS_SPREADSHEET = [".xls", ".xlsx"]
-
-EXTS_PRESENTATION = [".ppt", ".pptx"]
+ONLYOFFICE_SERVER = "https://doc.onlyoffice.com"
 
 if 'BASE_DIR' not in locals():
     BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 MEDIA_ROOT = BASE_DIR + "/media"
 
+# load custom settings (overrides)
+from .local_settings import *
