@@ -406,6 +406,30 @@ class PdfEditor(FileEditor):
         return render(request, "files/pdf.html", context)
 
 
+class UrlEditor(FileEditor):
+    def __init__(self):
+        super(UrlEditor, self).__init__()
+        self.name = 'url'
+        self.extensions = ['.url']
+
+    @classmethod
+    def show(cls, item, request):
+        item_rep = item_reps.FileRepresentation(item)
+        item_rep.target_url = UrlEditor.__get_url(item)
+        context = Context({'item_rep': item_rep})
+        return render(request, "files/url.html", context)
+
+    @classmethod
+    def __get_url(cls, item):
+        content = item.read_text()
+        match = re.search("url\s*=(.*)", content, flags=re.IGNORECASE)
+        if not match:
+            raise RuntimeError('Incorrect URL file format')
+        if not match.group(1):
+            raise RuntimeError('Incorrect URL')
+        return match.group(1)
+
+
 def __init_editors():
     default_editors = [
         'CodeEditor',
@@ -414,6 +438,7 @@ def __init_editors():
         'ImageEditor',
         'AudioEditor',
         'VideoEditor',
+        'UrlEditor',
         'OnlyOfficeEditor',
         'PdfEditor',
         'UniversalFileEditor'

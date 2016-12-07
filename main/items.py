@@ -273,6 +273,12 @@ class FileItem(Item):
         f.close()
         return content
 
+    def read_text(self):
+        f = open(self.absolute_path, 'r')
+        content = f.read()
+        f.close()
+        return content
+
     def write_chunks(self, chunks):
         f = open(self.absolute_path, 'wb+')
         for chunk in chunks:
