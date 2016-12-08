@@ -62,8 +62,11 @@ def item_handler(request, user_id, relative_path):
 
 
 def link_handler(request, link_id, relative_path):
-    link = models.SharedLink.objects.get(link_id=link_id)
-    if not link:
+    try:
+        link = models.SharedLink.objects.get(link_id=link_id)
+        if not link:
+            return redirect(login_view)
+    except:
         return redirect(login_view)
 
     factory = items.SharedLinkItemFactory(link)

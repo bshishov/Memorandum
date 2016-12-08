@@ -19,7 +19,7 @@ mimetypes.init()
 
 
 def get_editor(name):
-    editor = UniversalFileEditor
+    editor = FileEditor
     for possibleEditor in editors:
         if possibleEditor.name == name:
             editor = possibleEditor
@@ -36,11 +36,11 @@ def get_default_for(item):
 
 # abstract editor
 class Editor:
+    name = 'default_editor'
+    thumbnail = 'blocks/thumbnails/file.html'
+
     def __init__(self):
-        self.name = "editor"
-        # list of extensions that can be handle
-        self.extensions = []
-        self.thumbnail = "blocks/thumbnails/file.html"
+        pass
 
     # returns if needed action was not found
     @classmethod
@@ -102,11 +102,11 @@ class Editor:
 
 # editor for directories
 class DirectoryEditor(Editor):
+    name = 'directory'
+    thumbnail = 'blocks/thumbnails/dir.html'
+
     def __init__(self):
         super(DirectoryEditor, self).__init__()
-        self.name = "directory"
-        self.extensions = [""]
-        self.thumbnail = "blocks/thumbnails/dir.html"
 
     def can_handle(self, item):
         if item.is_dir:
@@ -172,18 +172,17 @@ class DirectoryEditor(Editor):
 
 # common editor for files
 class FileEditor(Editor):
+    name = 'file'
+    extensions = []  # list of extensions that this editor can handle
+    thumbnail = "blocks/thumbnails/file.html"
+
     def __init__(self):
         super(FileEditor, self).__init__()
-        self.name = "file"
-        self.extensions = [".txt", ".hex", ".bin", ".ini"]
-        self.thumbnail = "blocks/thumbnails/file.html"
 
     def can_handle(self, item):
-        extension = item.extension.lower()
-        if extension in self.extensions and not item.is_dir:
-            return True
-        else:
-            return False
+        if self.extensions:
+            return item.extension in self.extensions
+        return not item.is_dir
 
     @classmethod
     def raw(cls, item, request):
@@ -205,21 +204,8 @@ class FileEditor(Editor):
         if data is None:
             errors.append('No data received')
             return responses.AjaxResponse(responses.RESULT_ERROR, 'No data received', errors)
-        # TODO: no write success check
         item.write_content(data)
         return responses.AjaxResponse(responses.RESULT_OK, 'File saved successfully')
-
-
-class UniversalFileEditor(FileEditor):
-    def __init__(self):
-        super(UniversalFileEditor, self).__init__()
-        self.name = "universal"
-
-    def can_handle(self, item):
-        if not item.is_dir:
-            return True
-        else:
-            return False
 
     @classmethod
     def show(cls, item, request):
@@ -229,10 +215,17 @@ class UniversalFileEditor(FileEditor):
 
 
 class CodeEditor(FileEditor):
+    name = "code"
+    extensions = [".txt", ".hex", ".bin",
+                  '.xml', '.json',
+                  '.ini', '.cfg',
+                  '.c', '.cpp', '.h', '.hpp',
+                  '.py', '.cs',
+                  '.html', '.htm', '.css', '.js', '.less',
+                  ]
+
     def __init__(self):
         super(CodeEditor, self).__init__()
-        self.name = "code"
-        self.extensions = [".txt", ".hex", ".bin", ".ini", ""]
 
     @classmethod
     def show(cls, item, request):
@@ -242,10 +235,11 @@ class CodeEditor(FileEditor):
 
 
 class MarkdownEditor(FileEditor):
+    name = "markdown"
+    extensions = [".markdown", ".md"]
+
     def __init__(self):
         super(MarkdownEditor, self).__init__()
-        self.name = "markdown"
-        self.extensions = [".markdown", ".md"]
 
     @classmethod
     def show(cls, item, request):
@@ -255,6 +249,10 @@ class MarkdownEditor(FileEditor):
 
 
 class ImageEditor(FileEditor):
+    name = "image"
+    extensions = [".jpg", ".bmp", ".gif", ".png"]
+    thumbnail = "blocks/thumbnails/image.html"
+
     THUMBS_FOLDER = 'thumbs'
     THUMB_SIZE = (128, 128)
     THUMB_FORMAT = 'PNG'
@@ -264,9 +262,6 @@ class ImageEditor(FileEditor):
 
     def __init__(self):
         super(ImageEditor, self).__init__()
-        self.name = "image"
-        self.extensions = [".jpg", ".bmp", ".gif", ".png"]
-        self.thumbnail = "blocks/thumbnails/image.html"
 
     @classmethod
     def preview(cls, item, request):
@@ -274,7 +269,6 @@ class ImageEditor(FileEditor):
         media_dir_rel_path = os.path.join(str(item.owner.id), item.parent.rel_path)
         media_directory_item = ImageEditor.thumbs_items_factory.get_or_create_directory(media_dir_rel_path)
 
-        # TODO: DOUBLE CHECK
         if not media_directory_item.exists:
             media_directory_item.create_empty()
 
@@ -298,11 +292,12 @@ class ImageEditor(FileEditor):
 
 
 class AudioEditor(FileEditor):
+    name = "audio"
+    extensions = [".mp3", ".wav", ".m3u", ".ogg", '.aac']
+    thumbnail = "blocks/thumbnails/file.html"
+
     def __init__(self):
         super(AudioEditor, self).__init__()
-        self.name = "audio"
-        self.extensions = [".mp3", ".wav", ".m3u", ".ogg"]
-        self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
     def show(cls, item, request):
@@ -312,11 +307,12 @@ class AudioEditor(FileEditor):
 
 
 class VideoEditor(FileEditor):
+    name = "video"
+    extensions = [".mp4", ".avi", ".mov", ".webm"]
+    thumbnail = "blocks/thumbnails/file.html"
+
     def __init__(self):
         super(VideoEditor, self).__init__()
-        self.name = "video"
-        self.extensions = [".mp4", ".avi", ".mov", ".webm"]
-        self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
     def show(cls, item, request):
@@ -393,11 +389,12 @@ class OnlyOfficeEditor(FileEditor):
 
 
 class PdfEditor(FileEditor):
+    name = "pdf"
+    extensions = [".pdf"]
+    thumbnail = "blocks/thumbnails/file.html"
+
     def __init__(self):
         super(PdfEditor, self).__init__()
-        self.name = "pdf"
-        self.extensions = [".pdf"]
-        self.thumbnail = "blocks/thumbnails/file.html"
 
     @classmethod
     def show(cls, item, request):
@@ -407,10 +404,11 @@ class PdfEditor(FileEditor):
 
 
 class UrlEditor(FileEditor):
+    name = 'url'
+    extensions = ['.url']
+
     def __init__(self):
         super(UrlEditor, self).__init__()
-        self.name = 'url'
-        self.extensions = ['.url']
 
     @classmethod
     def show(cls, item, request):
@@ -432,16 +430,16 @@ class UrlEditor(FileEditor):
 
 def __init_editors():
     default_editors = [
-        'CodeEditor',
         'MarkdownEditor',
-        'DirectoryEditor',
         'ImageEditor',
         'AudioEditor',
         'VideoEditor',
         'UrlEditor',
         'OnlyOfficeEditor',
         'PdfEditor',
-        'UniversalFileEditor'
+        'CodeEditor',
+        'FileEditor',
+        'DirectoryEditor',
     ]
     if hasattr(settings, 'EDITORS') and len(settings.EDITORS) > 0:
         editor_names = settings.EDITORS
