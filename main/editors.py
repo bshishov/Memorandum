@@ -188,7 +188,9 @@ class FileEditor(Editor):
     @classmethod
     def raw(cls, item, request):
         data = item.read_byte()
-        return HttpResponse(data, content_type=item.mime)
+        response = HttpResponse(data, content_type=item.mime)
+        response["X-Frame-Options"] = "SAMEORIGIN"
+        return response
 
     @classmethod
     def download(cls, item, request):
