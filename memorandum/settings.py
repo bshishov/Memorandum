@@ -25,7 +25,7 @@ SECRET_KEY = "has9dpf87kjh4jn9cv7zxcovkj,kn24p07sdlkfjn"
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["host.docker.internal", "127.0.0.1", "localhost"]
 
 
 # Application definition
@@ -137,8 +137,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 AUTH_USER_MODEL = 'main.CustomUser'
 
 # for OnlyOffice
-ONLYOFFICE_SERVER = "https://doc.onlyoffice.com"
-
+ONLYOFFICE_SERVER = "http://localhost:8003"
+ONLYOFFICE_SECRET = "807vnoklj.ajnsd098"
+ONLYOFFICE_REVERSE_HOST = "http://host.docker.internal:8000/office"
 
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')

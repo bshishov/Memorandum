@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 from PIL import Image
 import importlib
@@ -8,6 +8,8 @@ import re
 import datetime
 import mimetypes
 import os.path
+import jwt
+import json
 from . import items
 from . import responses
 from . import models
@@ -321,7 +323,7 @@ class VideoEditor(FileEditor):
 
 
 class OnlyOfficeEditor(FileEditor):
-    EXTS_DOCUMENT = [".doc", ".docx"]
+    EXTS_DOCUMENT = [".doc", ".docx", ".rtf", ".odt"]
     EXTS_SPREADSHEET = [".xls", ".xlsx"]
     EXTS_PRESENTATION = [".ppt", ".pptx"]
     EXTENSIONS = EXTS_DOCUMENT + EXTS_SPREADSHEET + EXTS_PRESENTATION
@@ -345,22 +347,56 @@ class OnlyOfficeEditor(FileEditor):
         doc_editor_key = OnlyOfficeEditor.get_doc_editor_key(client_ip, item_rep.name)
         doc_type = OnlyOfficeEditor.get_document_type(item)
         ext = item_rep.item.extension.lstrip(".")
-        context = {'item_rep': item_rep,
-                           'api_src': api_src,
-                           'http_host': request.META['HTTP_HOST'],
-                           'doc_type': doc_type, 'doc_editor_key': doc_editor_key,
-                           'client_ip': client_ip, 'parent_url': parent_url,
-                           'curr_date': curr_date, 'ext': ext, 'item_url': item_url}
+        jwt_secret = settings.ONLYOFFICE_SECRET
+
+        full_item_reverse_url = settings.ONLYOFFICE_REVERSE_HOST + item_rep.url
+        doc_payload = {
+            "document": {
+                "fileType": ext,
+                "key": doc_editor_key,
+                "title": item_rep.name,
+                "url": f"{full_item_reverse_url}?action=raw",
+            },
+            "documentType": doc_type,
+            "editorConfig": {
+                "user": {
+                    "id": request.user.id,
+                    "name": request.user.username  
+                },
+                "callbackUrl": f"{full_item_reverse_url}?action=save_callback",
+                "mode": "edit",
+            },
+        }
+        
+        encoded_payload = jwt.encode(doc_payload, jwt_secret)
+        doc_payload["token"] = encoded_payload
+
+        print(doc_payload)
+        
+        context = {
+            'item_rep': item_rep,
+            'api_src': api_src,
+            'http_host': request.META['HTTP_HOST'],
+            'doc_type': doc_type,
+            'doc_editor_key': doc_editor_key,
+            'client_ip': client_ip,
+            'parent_url': parent_url,
+            'curr_date': curr_date,
+            'ext': ext,
+            'item_url': item_url,
+            'doc_payload': json.dumps(doc_payload),
+        }
+
         return render(request, "files/office.html", context)
 
     @classmethod
     def get_document_type(cls, item):
         if item.extension in cls.EXTS_DOCUMENT:
-            return "text"
+            return "word"
         elif item.extension in cls.EXTS_SPREADSHEET:
-            return "spreadsheet"
+            return "cell"
         elif item.extension in cls.EXTS_PRESENTATION:
-            return "presentation"
+            return "slide"
         else:
             return ""
 
@@ -382,9 +418,10 @@ class OnlyOfficeEditor(FileEditor):
         pass
 
     @classmethod
-    def save_callback(cls, item, request, permissions):
-        print(request.GET)
-        pass
+    def save_callback(cls, item, request):
+        print(request.read())
+        # TODO: actually do save
+        return JsonResponse({"error": 0})
 
 
 class PdfEditor(FileEditor):
@@ -456,5 +493,6 @@ def __init_editors():
             editor = globals()[editor_name]()
             initialized_editors.append(editor)
     return initialized_editors
+
 
 editors = __init_editors()

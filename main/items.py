@@ -274,7 +274,7 @@ class FileItem(Item):
         return content
 
     def read_text(self):
-        f = open(self.absolute_path, 'r')
+        f = open(self.absolute_path, 'r', encoding="utf-8")
         content = f.read()
         f.close()
         return content
@@ -286,7 +286,7 @@ class FileItem(Item):
         f.close()
 
     def write_content(self, content):
-        f = open(self.absolute_path, 'w')
+        f = open(self.absolute_path, 'w', encoding="utf-8")
         f.write(content)
         f.close()
 

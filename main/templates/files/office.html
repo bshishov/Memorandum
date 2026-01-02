@@ -3,23 +3,10 @@
 {% block file_content %}
 {% load static %}
 <div id="placeholder"></div>
-<!-- <script type="text/javascript" src="{{ api_src }}"></script> -->
-<script type="text/javascript" src="https://documentserver/web-apps/apps/api/documents/api.js"></script>
+<script type="text/javascript" src="{{ api_src }}"></script> 
 <script type="text/javascript">
     $(function () {
-        config = {
-            "document": {
-                "fileType": "{{ ext }}",
-                "key": "{{ doc_editor_key }}",
-                "title": "{{ item_rep.name }}",
-                "url": "{{ http_host }}{{ item_rep.url }}?action=raw",
-            },
-            "documentType": "{{ doc_type }}",
-            "editorConfig": {
-                "callbackUrl": "{{ http_host }}{{ item_rep.url }}?action=save_callback",
-            },
-        };
-        var docEditor = new DocsAPI.DocEditor("placeholder", config);
+        var docEditor = new DocsAPI.DocEditor("placeholder", JSON.parse('{{ doc_payload | safe }}'));
     });
 </script>
 {% endblock %}

@@ -1,9 +1,11 @@
+import jwt
 from django.shortcuts import render, redirect
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-from django.core.exceptions import ObjectDoesNotExist
+from django.core.exceptions import PermissionDenied
 from django.conf import settings
+from django.views.decorators.csrf import csrf_exempt
 
 from . import models
 from . import items
@@ -52,7 +54,6 @@ def access_denied(request):
     return render(request, "error.html", context)
 
 
-# main view function - handles the given item
 def item_handler(request, user_id, relative_path):
     if not request.user.is_authenticated:
         return redirect(login_view)
@@ -73,14 +74,29 @@ def link_handler(request, link_id, relative_path):
     return __item_handler(request, factory.get_item(relative_path), request.user)
 
 
-def __item_handler(request, current_item, request_user):
+@csrf_exempt
+def onlyoffice_handler(request, user_id, relative_path):
+    auth = request.headers.get("Authorization")
+    if not auth:
+        raise PermissionDenied("Authorization required")
+    _, _, token = auth.partition(" ")
+    if not token:
+        raise PermissionDenied("Authorization required")
+
+    jwt.decode(token, key=settings.ONLYOFFICE_SECRET, algorithms=["HS256"])
+
+    factory = items.UserItemFactory(models.CustomUser.objects.get(id=user_id))
+    return __item_handler(request, factory.get_item(relative_path), request.user, chek_permissions=False)
+
+
+def __item_handler(request, current_item, request_user, chek_permissions=True):
     if current_item is None:
         return redirect(access_denied)
 
     # getting the needed action or 'show' by default
     chosen_action = request.GET.get('action', 'show')
 
-    if not permissions.has_permission(request_user, current_item, chosen_action):
+    if chek_permissions and not permissions.has_permission(request_user, current_item, chosen_action):
         return redirect(access_denied)
 
     # getting the needed editor or searching for default editor
