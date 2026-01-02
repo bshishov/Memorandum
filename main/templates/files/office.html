@@ -1,11 +1,12 @@
 {% extends 'file_layout.html' %}
 
 {% block file_content %}
-{% load staticfiles %}
+{% load static %}
 <div id="placeholder"></div>
-<script type="text/javascript" src="{{ api_src }}"></script>
+<!-- <script type="text/javascript" src="{{ api_src }}"></script> -->
+<script type="text/javascript" src="https://documentserver/web-apps/apps/api/documents/api.js"></script>
 <script type="text/javascript">
-    $(function(){
+    $(function () {
         config = {
             "document": {
                 "fileType": "{{ ext }}",

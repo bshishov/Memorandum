@@ -12,6 +12,11 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 import os
 
+# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+SECRET_KEY = "has9dpf87kjh4jn9cv7zxcovkj,kn24p07sdlkfjn"
+
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.10/howto/deployment/checklist/
@@ -65,6 +70,17 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'memorandum.wsgi.application'
 
+
+# Database
+# https://docs.djangoproject.com/en/1.10/ref/settings/#databases
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+    }
+}
+
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
 
@@ -103,6 +119,9 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
 # Here you can add your own set of editors
 # leave it commented to use default editors
 # EDITORS = [
@@ -120,10 +139,14 @@ AUTH_USER_MODEL = 'main.CustomUser'
 # for OnlyOffice
 ONLYOFFICE_SERVER = "https://doc.onlyoffice.com"
 
-if 'BASE_DIR' not in locals():
-    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-MEDIA_ROOT = BASE_DIR + "/media"
+
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # load custom settings (overrides)
-from .local_settings import *
+# load custom settings (overrides)
+try:
+    from .local_settings import *
+except ImportError:
+    pass
+

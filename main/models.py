@@ -111,11 +111,11 @@ class CustomUser(AbstractBaseUser):
 # need to store information about directory-sharing
 class Sharing (models.Model):
     # owner of shared dir
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="my_sharings")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="my_sharings", on_delete=models.CASCADE)
     # which item is shared
     item = models.CharField(max_length=1024, blank=True, null=False)
     # with who it is shared
-    shared_with = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='shared_with_me')
+    shared_with = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='shared_with_me', on_delete=models.CASCADE)
     # bitmask - what owner allows second person to do
     permissions = models.IntegerField()
 
@@ -124,7 +124,7 @@ class Sharing (models.Model):
 
 
 class SharedLink(models.Model):
-    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="my_shared_links")
+    owner = models.ForeignKey(settings.AUTH_USER_MODEL, related_name="my_shared_links", on_delete=models.CASCADE)
     item = models.CharField(max_length=1024, blank=True, null=False)
     link_id = models.CharField(max_length=256, blank=False, null=False, unique=True)
     permissions = models.IntegerField()

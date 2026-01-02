@@ -94,3 +94,8 @@ mysql.conf
 .idea
 *.jpg
 media/
+
+.vscode/
+.code/
+.venv/
+.mypy_cache/

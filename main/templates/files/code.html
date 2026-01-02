@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block file_content %}
-{% load staticfiles %}
+{% load static %}
 <div id="editor"></div>
 <script src="{% static 'js/ace/ace.js' %}" type="text/javascript" charset="utf-8"></script>
 <script src="{% static 'js/ace/ext-modelist.js' %}" type="text/javascript" charset="utf-8"></script>
@@ -17,11 +17,11 @@
     var ITEM_FILENAME = "{{item_rep.url}}";
     var editor;
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         $.ajax({
             url: ITEM_RAW_URL,
             dataType: "text",
-            success: function(data) {
+            success: function (data) {
                 var modelist = ace.require("ace/ext/modelist");
                 var mode = modelist.getModeForPath(ITEM_FILENAME).mode;
                 editor = ace.edit("editor");
@@ -34,7 +34,7 @@
                 editor.setFontSize(14);
                 editor.setOption("scrollPastEnd", true);
 
-                var heightUpdateFunction = function() {
+                var heightUpdateFunction = function () {
                     $('#editor').height($('#editor').parent().height());
                     editor.resize();
                 };
@@ -45,11 +45,11 @@
                 // Whenever a change happens inside the ACE editor, update
                 // the size again
                 //editor.getSession().on('change', heightUpdateFunction);
-                $( window ).resize(heightUpdateFunction);
+                $(window).resize(heightUpdateFunction);
             },
         });
 
-        $("#savechanges").on("click", function(){
+        $("#savechanges").on("click", function () {
             $.ajax({
                 type: "POST",
                 url: ITEM_SAVE_URL,
@@ -58,10 +58,10 @@
                     'data': editor.getValue(),
                     'csrfmiddleware‌​token': csrfToken
                 },
-                success: function(data){
+                success: function (data) {
                     alert(data.message);
                 },
-                error: function(xhr, status, error){
+                error: function (xhr, status, error) {
                     alert(error);
                 }
             });

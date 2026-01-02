@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.template import Context, loader
+
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.core.exceptions import ObjectDoesNotExist
@@ -46,9 +46,9 @@ def logout_view(request):
 
 
 def access_denied(request):
-    context = Context({'error_code': 403,
-                       'error_message': "Access denied",
-                       'details': "You are not allowed to perform this action"})
+    context = {'error_code': 403,
+               'error_message': "Access denied",
+               'details': "You are not allowed to perform this action"}
     return render(request, "error.html", context)
 
 
@@ -97,33 +97,8 @@ def __item_handler(request, current_item, request_user):
 def __item_handler_safe(request, current_item, request_user):
     try:
         return __item_handler(request, current_item, request_user)
-    except ObjectDoesNotExist as error:
-        context = Context({'error_code': 404,
-                           'error_message': "Object doest not exists",
-                           'details': str(error)})
-        return render(request, "error.html", context)
-    except KeyError as error:
-        context = Context({'error_code': 404,
-                           'error_message': "Editor not found",
-                           'details': str(error)})
-        return render(request, "error.html", context)
-    except LookupError as error:
-        context = Context({'error_code': 404,
-                           'error_message': "Wrong editor",
-                           'details': str(error)})
-        return render(request, "error.html", context)
-    except FileNotFoundError as error:
-        context = Context({'error_code': 404,
-                           'error_message': "Not found",
-                           'details': str(error)})
-        return render(request, "error.html", context)
-    except PermissionError as error:
-        context = Context({'error_code': 403,
-                           'error_message': "OS Permission error",
-                           'details': str(error)})
-        return render(request, "error.html", context)
     except Exception as error:
-        context = Context({'error_code': 500,
-                           'error_message': type(error).__name__,
-                           'details': error})
+        context = {'error_code': 500,
+                   'error_message': type(error).__name__,
+                   'details': error}
         return render(request, "error.html", context)

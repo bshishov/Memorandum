@@ -1,5 +1,4 @@
 from django.shortcuts import render, redirect
-from django.template import Context
 from django.http import HttpResponse
 from django.conf import settings
 from PIL import Image
@@ -125,7 +124,7 @@ class DirectoryEditor(Editor):
                 child_dirs.append(item_reps.DirectoryRepresentation(child))
             else:
                 child_files.append(item_reps.FileRepresentation(child))
-        context = Context({'item_rep': item_rep, 'child_dirs': child_dirs, 'child_files': child_files,})
+        context = {'item_rep': item_rep, 'child_dirs': child_dirs, 'child_files': child_files,}
         return render(request, "dir.html", context)
 
     @classmethod
@@ -210,7 +209,7 @@ class FileEditor(Editor):
     @classmethod
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/default.html", context)
 
 
@@ -230,7 +229,7 @@ class CodeEditor(FileEditor):
     @classmethod
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/code.html", context)
 
 
@@ -244,7 +243,7 @@ class MarkdownEditor(FileEditor):
     @classmethod
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/md.html", context)
 
 
@@ -287,7 +286,7 @@ class ImageEditor(FileEditor):
     @classmethod
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/image.html", context)
 
 
@@ -302,7 +301,7 @@ class AudioEditor(FileEditor):
     @classmethod
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/audio.html", context)
 
 
@@ -317,7 +316,7 @@ class VideoEditor(FileEditor):
     @classmethod
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/video.html", context)
 
 
@@ -346,12 +345,12 @@ class OnlyOfficeEditor(FileEditor):
         doc_editor_key = OnlyOfficeEditor.get_doc_editor_key(client_ip, item_rep.name)
         doc_type = OnlyOfficeEditor.get_document_type(item)
         ext = item_rep.item.extension.lstrip(".")
-        context = Context({'item_rep': item_rep,
+        context = {'item_rep': item_rep,
                            'api_src': api_src,
                            'http_host': request.META['HTTP_HOST'],
                            'doc_type': doc_type, 'doc_editor_key': doc_editor_key,
                            'client_ip': client_ip, 'parent_url': parent_url,
-                           'curr_date': curr_date, 'ext': ext, 'item_url': item_url})
+                           'curr_date': curr_date, 'ext': ext, 'item_url': item_url}
         return render(request, "files/office.html", context)
 
     @classmethod
@@ -399,7 +398,7 @@ class PdfEditor(FileEditor):
     @classmethod
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/pdf.html", context)
 
 
@@ -414,7 +413,7 @@ class UrlEditor(FileEditor):
     def show(cls, item, request):
         item_rep = item_reps.FileRepresentation(item)
         item_rep.target_url = UrlEditor.__get_url(item)
-        context = Context({'item_rep': item_rep})
+        context = {'item_rep': item_rep}
         return render(request, "files/url.html", context)
 
     @classmethod
